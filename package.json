@@ -22,6 +22,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@hookform/resolvers": "^5.2.2",
     "@react-google-maps/api": "^2.20.8",
     "@supabase/supabase-js": "^2.95.3",
     "@types/node": "^25.2.2",

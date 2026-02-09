@@ -1,0 +1,135 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
+import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import {
+  HomeIcon,
+  BuildingOfficeIcon,
+  DocumentTextIcon,
+  UsersIcon,
+  Cog6ToothIcon,
+} from '@heroicons/react/24/outline'
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const { user, isLoading, isAdmin } = useAuth()
+
+  useEffect(() => {
+    if (!isLoading && !isAdmin) {
+      router.push('/login')
+    }
+  }, [isLoading, isAdmin, router])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  if (!isAdmin) {
+    return null
+  }
+
+  const navigation = [
+    {
+      name: 'Dashboard',
+      href: '/admin',
+      icon: HomeIcon,
+      current: pathname === '/admin',
+    },
+    {
+      name: 'Properties',
+      href: '/admin/properties',
+      icon: BuildingOfficeIcon,
+      current: pathname === '/admin/properties',
+    },
+    {
+      name: 'Submissions',
+      href: '/admin/submissions',
+      icon: DocumentTextIcon,
+      current: pathname === '/admin/submissions',
+    },
+    {
+      name: 'Users',
+      href: '/admin/users',
+      icon: UsersIcon,
+      current: pathname === '/admin/users',
+    },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-navy min-h-screen fixed left-0 top-0">
+          <div className="flex flex-col h-full">
+            {/* Logo */}
+            <div className="p-6 border-b border-navy-700">
+              <Link href="/admin" className="flex items-center">
+                <span className="text-xl font-heading font-bold text-white">
+                  Haven Housing
+                </span>
+              </Link>
+              <p className="text-xs text-gray-300 mt-1">Admin Dashboard</p>
+            </div>
+
+            {/* Navigation */}
+            <nav className="flex-1 px-4 py-6 space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={`
+                      flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                      ${
+                        item.current
+                          ? 'bg-navy-700 text-white'
+                          : 'text-gray-300 hover:bg-navy-700 hover:text-white'
+                      }
+                    `}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
+
+            {/* User Info */}
+            <div className="p-4 border-t border-navy-700">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-orange flex items-center justify-center text-white font-semibold">
+                  {user?.full_name?.[0] || user?.email[0]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">
+                    {user?.full_name || 'Admin'}
+                  </p>
+                  <p className="text-xs text-gray-300 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 ml-64">
+          <div className="p-8">{children}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
