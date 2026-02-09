@@ -39,11 +39,20 @@ export default function PropertiesPage() {
         .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
 
       setAllPublishedProperties(data || [])
-    } catch (err) {
-      console.error('Error loading properties:', err)
+    } catch (err: any) {
+      console.error('Error loading properties:', {
+        message: err?.message || 'Unknown error',
+        details: err?.details || 'No details available',
+        hint: err?.hint || 'No hint available',
+        code: err?.code || 'No error code',
+        error: err
+      })
     } finally {
       setIsLoadingInitial(false)
     }
