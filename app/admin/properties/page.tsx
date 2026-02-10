@@ -292,7 +292,7 @@ export default function PropertiesPage() {
         key: 'actions',
         label: 'Actions',
         className: 'w-20',
-        render: (_, property: Property) => (
+        render: (_: any, property: Property) => (
           <div className="flex items-center gap-1">
             <button
               onClick={(e) => {

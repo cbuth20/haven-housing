@@ -41,7 +41,7 @@ export function PropertyDetailsModal({
   const images = [
     property.cover_photo_url,
     ...(property.media_gallery_urls || []),
-  ].filter(Boolean)
+  ].filter(Boolean) as string[]
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))

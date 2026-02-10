@@ -99,3 +99,23 @@ Step 2: Migrating images for 98 properties...
 [2026-02-10 16:58:45] WARN: Partial success for 7f930cc0-dfb8-47e9-866a-8eb1fbfd2ed4: 12 image(s) failed
 [2026-02-10 16:59:16] WARN: Partial success for b8d7c46b-f9ed-4aae-8e48-96c83056b980: 8 image(s) failed
 [2026-02-10 17:00:01] WARN: Partial success for b1c0cc52-43a9-498a-8174-01773c6351f2: 12 image(s) failed
+[2026-02-10 17:00:31] WARN: Partial success for 939df6b9-5bce-4c7d-acca-9a008630b966: 2 image(s) failed
+[2026-02-10 17:01:16] WARN: Partial success for 567a72f8-1979-4c4f-b5d9-f63913deda2a: 19 image(s) failed
+[2026-02-10 17:01:45] WARN: Partial success for adad3f27-d858-45c1-b2f9-4865bb4d9d70: 6 image(s) failed
+[2026-02-10 17:02:16] WARN: Partial success for 25f55f1e-7bf4-48ba-aefe-42497cb72844: 11 image(s) failed
+[2026-02-10 17:03:01] WARN: Partial success for 663bd9d1-a1c7-443b-818c-62ce1e48e1ac: 12 image(s) failed
+[2026-02-10 17:03:46] WARN: Partial success for d1177072-a057-41a4-a364-2ad0e7a6e58e: 17 image(s) failed
+[2026-02-10 17:04:16] WARN: Partial success for ec4291b5-855a-4525-bb0b-58aa35366176: 10 image(s) failed
+[2026-02-10 17:05:01] WARN: Partial success for 87d162f7-4b32-421f-9670-8546fb608a95: 12 image(s) failed
+[2026-02-10 17:05:33] WARN: Partial success for 4989d53d-4dc5-4598-a8e3-b963f9d08c91: 11 image(s) failed
+[2026-02-10 17:06:18] WARN: Partial success for afdb6d6b-2970-47c6-88c7-70d84d450ee0: 12 image(s) failed
+[2026-02-10 17:07:02] WARN: Partial success for ffd88a6d-8b70-4662-9856-f8cacb6e7dae: 18 image(s) failed
+[2026-02-10 17:07:02] SUMMARY: {
+  "Properties Imported": 98,
+  "Images Migrated Successfully": 98,
+  "Image Migrations Failed": 0,
+  "Property Import Failures": 0
+}
+[2026-02-10 17:07:02] SUCCESS: 
+✅ Import complete! Check your admin panel to view properties.
+[2026-02-10 17:07:02] INFO: Run: npx tsx scripts/check-migration-status.ts

@@ -51,6 +51,9 @@ export interface Property {
   salesforce_id: string | null
   last_synced_at: string | null
 
+  // Wix Migration
+  wix_id: string | null
+
   // Ownership & Tracking
   owner_id: string | null
   created_by: string | null
