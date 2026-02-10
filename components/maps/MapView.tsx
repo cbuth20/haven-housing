@@ -32,13 +32,20 @@ export function MapView({
   useEffect(() => {
     const initMap = async () => {
       try {
+        console.log('🗺️ MapView: Starting initialization...')
         setIsLoading(true)
         setError(null)
 
+        console.log('🗺️ MapView: Loading Google Maps API...')
         await loadGoogleMaps()
 
-        if (!mapRef.current) return
+        console.log('🗺️ MapView: Google Maps loaded, checking mapRef...')
+        if (!mapRef.current) {
+          console.error('🗺️ MapView: mapRef.current is null!')
+          return
+        }
 
+        console.log('🗺️ MapView: Creating map with center:', center, 'zoom:', zoom)
         // Create map
         const map = new google.maps.Map(mapRef.current, {
           center,
@@ -50,13 +57,21 @@ export function MapView({
         })
 
         mapInstanceRef.current = map
+        console.log('🗺️ MapView: Map created successfully!')
 
         // Create info window
         infoWindowRef.current = new google.maps.InfoWindow()
 
+        // Trigger resize to ensure map renders properly
+        setTimeout(() => {
+          google.maps.event.trigger(map, 'resize')
+          map.setCenter(center)
+          console.log('🗺️ MapView: Triggered resize event')
+        }, 100)
+
         setIsLoading(false)
       } catch (err: any) {
-        console.error('Error loading Google Maps:', err)
+        console.error('🗺️ MapView: Error loading Google Maps:', err)
         setError(err.message || 'Failed to load map')
         setIsLoading(false)
       }
@@ -67,17 +82,23 @@ export function MapView({
 
   // Update markers when properties change
   useEffect(() => {
-    if (!mapInstanceRef.current || !properties.length) return
+    if (!mapInstanceRef.current || isLoading) return
+
+    console.log('🗺️ MapView: Updating markers for', properties.length, 'properties')
 
     // Clear existing markers
     markersRef.current.forEach((marker) => marker.setMap(null))
     markersRef.current = []
 
+    // If no properties, return early
+    if (properties.length === 0) return
+
     // Create bounds to fit all markers
     const bounds = new google.maps.LatLngBounds()
+    let hasValidMarkers = false
 
     // Add new markers
-    properties.forEach((property) => {
+    properties.forEach((property, index) => {
       if (!property.latitude || !property.longitude) return
 
       const position = {
@@ -89,11 +110,13 @@ export function MapView({
         position,
         map: mapInstanceRef.current!,
         title: property.title,
-        animation: google.maps.Animation.DROP,
+        // Remove animation to avoid timing issues
       })
 
       // Add click listener
       marker.addListener('click', () => {
+        console.log('🗺️ MapView: Marker clicked for', property.title)
+
         if (onMarkerClick) {
           onMarkerClick(property)
         }
@@ -135,25 +158,32 @@ export function MapView({
 
       markersRef.current.push(marker)
       bounds.extend(position)
+      hasValidMarkers = true
     })
 
     // Fit map to show all markers
-    if (properties.length > 0) {
+    if (hasValidMarkers) {
+      console.log('🗺️ MapView: Fitting bounds for', properties.length, 'properties')
       mapInstanceRef.current.fitBounds(bounds)
 
       // Don't zoom in too much for a single marker
-      const listener = google.maps.event.addListener(
+      const listener = google.maps.event.addListenerOnce(
         mapInstanceRef.current,
         'idle',
         () => {
-          if (properties.length === 1 && mapInstanceRef.current!.getZoom()! > 15) {
+          const currentZoom = mapInstanceRef.current!.getZoom()!
+          console.log('🗺️ MapView: Map idle, zoom level:', currentZoom)
+          if (properties.length === 1 && currentZoom > 15) {
             mapInstanceRef.current!.setZoom(15)
           }
-          google.maps.event.removeListener(listener)
+          // For multiple properties, ensure reasonable max zoom
+          if (properties.length > 1 && currentZoom > 12) {
+            mapInstanceRef.current!.setZoom(12)
+          }
         }
       )
     }
-  }, [properties, onMarkerClick])
+  }, [properties, onMarkerClick, isLoading])
 
   if (error) {
     return (
@@ -170,13 +200,16 @@ export function MapView({
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${className}`}>
       {isLoading && (
-        <div className={`${className} bg-gray-100 rounded-lg flex items-center justify-center`}>
+        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
           <LoadingSpinner size="lg" />
         </div>
       )}
-      <div ref={mapRef} className={`${className} rounded-lg ${isLoading ? 'hidden' : ''}`} />
+      <div
+        ref={mapRef}
+        className={`w-full h-full rounded-lg ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+      />
     </div>
   )
 }

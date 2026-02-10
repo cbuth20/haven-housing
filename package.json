@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "tsx scripts/seed-properties.ts"
   },
   "repository": {
     "type": "git",
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.2.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.4",
     "next": "^16.1.6",
     "parse-multipart-data": "^1.5.0",
     "react": "^19.2.4",
@@ -51,6 +53,7 @@
     "eslint-config-next": "^16.1.6",
     "netlify-cli": "^23.15.1",
     "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "tsx": "^4.21.0"
   }
 }

@@ -30,8 +30,19 @@ export function useProperties() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to create property')
+        let errorMessage = 'Failed to create property'
+        try {
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
@@ -62,8 +73,19 @@ export function useProperties() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to update property')
+        let errorMessage = 'Failed to update property'
+        try {
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()
@@ -94,12 +116,26 @@ export function useProperties() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to delete property')
+        let errorMessage = 'Failed to delete property'
+        try {
+          // Read as text first, then try to parse as JSON
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            // If not JSON, use the text directly
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
       }
 
       return true
     } catch (err: any) {
+      console.error('Delete property error:', err)
       setError(err.message)
       throw err
     } finally {
@@ -127,8 +163,19 @@ export function useProperties() {
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || 'Failed to upload photos')
+        let errorMessage = 'Failed to upload photos'
+        try {
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
       }
 
       const data = await response.json()

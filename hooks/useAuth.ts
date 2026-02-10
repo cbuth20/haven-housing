@@ -1,18 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAuthStore } from '@/store/auth-store'
 
 export function useAuth() {
-  const { user, isLoading, isAuthenticated, initialize, signIn, signUp, signOut } = useAuthStore()
+  const { user, isLoading, isAuthenticated, initialized, initialize, signIn, signUp, signOut } = useAuthStore()
+  const hasInitialized = useRef(false)
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    if (!hasInitialized.current && !initialized) {
+      hasInitialized.current = true
+      initialize()
+    }
+  }, [initialize, initialized])
+
+  const isAdmin = user?.role === 'admin'
+
+  console.log('🔐 useAuth:', { user, isLoading, isAuthenticated, isAdmin, userRole: user?.role })
 
   return {
     user,
     isLoading,
     isAuthenticated,
-    isAdmin: user?.role === 'admin',
+    isAdmin,
     signIn,
     signUp,
     signOut,

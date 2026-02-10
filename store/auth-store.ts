@@ -6,6 +6,7 @@ interface AuthState {
   user: UserProfile | null
   isLoading: boolean
   isAuthenticated: boolean
+  initialized: boolean
   initialize: () => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, fullName: string) => Promise<void>
@@ -13,12 +14,24 @@ interface AuthState {
   refreshUser: () => Promise<void>
 }
 
+// Store auth listener subscription to prevent duplicates
+let authSubscription: { data: { subscription: any } } | null = null
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  initialized: false,
 
   initialize: async () => {
+    // Prevent multiple initializations
+    if (get().initialized) {
+      console.log('🔐 Auth already initialized, skipping')
+      return
+    }
+
+    console.log('🔐 Initializing auth...')
+
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
@@ -33,17 +46,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           user: profile,
           isAuthenticated: true,
           isLoading: false,
+          initialized: true,
         })
       } else {
         set({
           user: null,
           isAuthenticated: false,
           isLoading: false,
+          initialized: true,
         })
       }
 
+      // Clean up existing listener
+      if (authSubscription) {
+        authSubscription.data.subscription.unsubscribe()
+      }
+
       // Listen for auth changes
-      supabase.auth.onAuthStateChange(async (event, session) => {
+      authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔐 Auth state changed:', event)
+
         if (session?.user) {
           const { data: profile } = await supabase
             .from('user_profiles')
@@ -68,6 +90,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         isAuthenticated: false,
         isLoading: false,
+        initialized: true,
       })
     }
   },
@@ -81,11 +104,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error
 
     if (data.user) {
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', data.user.id)
         .single()
+
+      console.log('🔐 SignIn: Profile fetched:', { profile, profileError })
 
       set({
         user: profile,

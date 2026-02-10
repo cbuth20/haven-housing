@@ -24,10 +24,12 @@ export default function AdminLayout({
   const { user, isLoading, isAdmin } = useAuth()
 
   useEffect(() => {
+    console.log('🔐 Admin Layout Auth Check:', { isLoading, isAdmin, user })
     if (!isLoading && !isAdmin) {
+      console.log('❌ Not admin, redirecting to login')
       router.push('/login')
     }
-  }, [isLoading, isAdmin, router])
+  }, [isLoading, isAdmin, router, user])
 
   if (isLoading) {
     return (

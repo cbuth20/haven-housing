@@ -3,7 +3,17 @@
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/common/Button'
+import { Dropdown, DropdownItem, DropdownLink } from '@/components/common/Dropdown'
 import { useRouter } from 'next/navigation'
+import {
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon,
+  HomeIcon,
+  BuildingOfficeIcon,
+  DocumentTextIcon,
+  UsersIcon,
+  ChevronDownIcon
+} from '@heroicons/react/24/outline'
 
 export function Header() {
   const { user, isAuthenticated, isAdmin, signOut } = useAuth()
@@ -59,31 +69,50 @@ export function Header() {
             >
               Contact
             </Link>
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="text-orange hover:text-orange-600 font-medium"
-              >
-                Admin
-              </Link>
-            )}
           </div>
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
-              <>
-                <span className="text-sm text-gray-600">
-                  {user?.full_name || user?.email}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSignOut}
-                >
+              <Dropdown
+                trigger={
+                  <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="h-8 w-8 rounded-full bg-navy flex items-center justify-center text-white font-semibold text-sm">
+                      {user?.full_name?.[0] || user?.email?.[0] || 'U'}
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {user?.full_name || user?.email?.split('@')[0]}
+                    </span>
+                    <ChevronDownIcon className="h-4 w-4 text-gray-500" />
+                  </button>
+                }
+              >
+                {isAdmin && (
+                  <>
+                    <div className="px-4 py-2 border-b border-gray-200">
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Admin
+                      </p>
+                    </div>
+                    <DropdownLink href="/admin" icon={HomeIcon}>
+                      Dashboard
+                    </DropdownLink>
+                    <DropdownLink href="/admin/properties" icon={BuildingOfficeIcon}>
+                      Properties
+                    </DropdownLink>
+                    <DropdownLink href="/admin/submissions" icon={DocumentTextIcon}>
+                      Submissions
+                    </DropdownLink>
+                    <DropdownLink href="/admin/users" icon={UsersIcon}>
+                      Users
+                    </DropdownLink>
+                    <div className="border-t border-gray-200 my-1"></div>
+                  </>
+                )}
+                <DropdownItem onClick={handleSignOut} icon={ArrowRightOnRectangleIcon} danger>
                   Sign Out
-                </Button>
-              </>
+                </DropdownItem>
+              </Dropdown>
             ) : (
               <>
                 <Link href="/login">

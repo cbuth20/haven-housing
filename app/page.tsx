@@ -4,29 +4,35 @@ import { Button } from '@/components/common/Button'
 export default function Home() {
   return (
     <div>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-navy to-navy-700 text-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className="text-5xl md:text-6xl font-heading font-bold mb-6">
-              Welcome to Haven Housing Solutions
+      {/* Hero Section with Background Image */}
+      <section className="relative h-[600px] md:h-[700px] flex items-center">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2070&auto=format&fit=crop"
+            alt="Modern home interior"
+            className="w-full h-full object-cover"
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/50"></div>
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-3xl">
+            <h1 className="text-5xl md:text-7xl font-heading font-bold text-white mb-6">
+              Haven Housing
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">
-              Your trusted partner in property management and relocation services for
-              insurance, corporate, and government clients.
+            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
+              We solve lodging needs for displaced families, government personnel,
+              corporate and relocation travelers, project and intern groups, and more.
+              Get a customized solution to fit your unique requirements today.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/properties">
-                <Button variant="secondary" size="lg">
-                  Search Properties
-                </Button>
-              </Link>
-              <Link href="/services">
-                <Button variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-navy">
-                  Our Services
-                </Button>
-              </Link>
-            </div>
+            <Link href="/properties">
+              <button className="text-lg px-8 py-4 bg-navy text-white hover:bg-navy-700 font-semibold rounded-lg transition-colors">
+                FIND HOUSING
+              </button>
+            </Link>
           </div>
         </div>
       </section>
