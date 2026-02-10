@@ -23,8 +23,14 @@ export function Header() {
   const router = useRouter()
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push('/')
+    try {
+      console.log('🔓 Sign out clicked')
+      await signOut()
+      console.log('🔓 Sign out successful, redirecting...')
+      router.push('/')
+    } catch (error) {
+      console.error('🔓 Sign out error:', error)
+    }
   }
 
   return (

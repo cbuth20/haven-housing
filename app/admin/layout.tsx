@@ -12,7 +12,6 @@ import {
   DocumentTextIcon,
   UsersIcon,
   Cog6ToothIcon,
-  ArrowLeftIcon,
   ChartBarIcon,
 } from '@heroicons/react/24/outline'
 
@@ -46,6 +45,12 @@ export default function AdminLayout({
   }
 
   const navigation = [
+    {
+      name: 'Home',
+      href: '/',
+      icon: HomeIcon,
+      current: false,
+    },
     {
       name: 'Dashboard',
       href: '/admin',
@@ -110,17 +115,6 @@ export default function AdminLayout({
               )
             })}
           </nav>
-
-          {/* Back to Home Button */}
-          <div className="p-4 border-t border-navy-700">
-            <Link
-              href="/"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-navy-700 hover:text-white transition-colors"
-            >
-              <ArrowLeftIcon className="h-5 w-5" />
-              Back to Home
-            </Link>
-          </div>
         </div>
 
         {/* Main Content */}

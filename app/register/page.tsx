@@ -35,7 +35,7 @@ export default function RegisterPage() {
 
     try {
       await signUp(email, password, fullName)
-      router.push('/properties')
+      router.push('/')
     } catch (err: any) {
       setError(err.message || 'Failed to create account')
     } finally {

@@ -45,9 +45,14 @@ interface DropdownItemProps {
 export function DropdownItem({ onClick, children, icon: Icon, danger = false }: DropdownItemProps) {
   return (
     <Menu.Item>
-      {({ active }) => (
+      {({ active, close }) => (
         <button
-          onClick={onClick}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault()
+            onClick?.()
+            close()
+          }}
           className={`
             ${active ? 'bg-gray-100' : ''}
             ${danger ? 'text-red-600' : 'text-gray-700'}
