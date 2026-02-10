@@ -74,16 +74,13 @@ export default function AdminLayout({
     <div className="min-h-screen bg-gray-50">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-navy min-h-screen fixed left-0 top-0">
+        <div className="w-64 bg-navy fixed left-0 top-16 bottom-0">
           <div className="flex flex-col h-full">
-            {/* Logo */}
+            {/* Admin Label */}
             <div className="p-6 border-b border-navy-700">
-              <Link href="/admin" className="flex items-center">
-                <span className="text-xl font-heading font-bold text-white">
-                  Haven Housing
-                </span>
-              </Link>
-              <p className="text-xs text-gray-300 mt-1">Admin Dashboard</p>
+              <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
+                Admin Dashboard
+              </p>
             </div>
 
             {/* Navigation */}
@@ -110,20 +107,6 @@ export default function AdminLayout({
               })}
             </nav>
 
-            {/* User Info */}
-            <div className="p-4 border-t border-navy-700">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-orange flex items-center justify-center text-white font-semibold">
-                  {user?.full_name?.[0] || user?.email[0]}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">
-                    {user?.full_name || 'Admin'}
-                  </p>
-                  <p className="text-xs text-gray-300 truncate">{user?.email}</p>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
 
