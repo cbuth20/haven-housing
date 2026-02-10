@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { SearchFilters } from '@/components/property/PropertyFilters'
 import { MapView } from '@/components/maps/MapView'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { PropertyListCard } from '@/components/property/PropertyListCard'
 import { usePropertySearch } from '@/hooks/usePropertySearch'
 import { Property } from '@/types/property'
 import { supabase } from '@/lib/supabase'
@@ -337,63 +338,14 @@ export default function PropertiesPage() {
                 </p>
               </div>
             ) : (
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-3">
                 {displayProperties.map((property) => (
-                  <div
+                  <PropertyListCard
                     key={property.id}
+                    property={property}
                     onClick={() => handlePropertyClick(property)}
-                    className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden flex"
-                  >
-                    {/* Image */}
-                    <div className="w-48 h-36 bg-gray-200 flex-shrink-0">
-                      {property.cover_photo_url ? (
-                        <img
-                          src={property.cover_photo_url}
-                          alt={property.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <HomeIcon className="h-10 w-10 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 p-4">
-                      <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-lg font-semibold text-navy line-clamp-1">
-                          {property.title}
-                        </h3>
-                        {property.monthly_rent && (
-                          <p className="text-lg font-bold text-navy ml-2 flex-shrink-0">
-                            {formatCurrency(property.monthly_rent)}/mo
-                          </p>
-                        )}
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-2">
-                        {property.city}, {property.state}
-                      </p>
-
-                      <div className="flex gap-4 text-sm text-gray-600">
-                        {property.beds && <span>{property.beds} bed{property.beds > 1 ? 's' : ''}</span>}
-                        {property.baths && <span>{property.baths} bath{property.baths > 1 ? 's' : ''}</span>}
-                        {property.square_footage && <span>{property.square_footage} sq ft</span>}
-                        {property.distance && (
-                          <span className="text-orange font-semibold">
-                            {property.distance.toFixed(1)} mi away
-                          </span>
-                        )}
-                      </div>
-
-                      {property.description && (
-                        <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-                          {property.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                    showDistance={hasSearched}
+                  />
                 ))}
               </div>
             )}

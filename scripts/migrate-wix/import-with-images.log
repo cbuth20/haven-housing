@@ -1,0 +1,80 @@
+[2026-02-10 15:54:58] PHASE: Importing 100 Properties with Images
+[2026-02-10 15:54:58] INFO: Parsing CSV: ./All+Properties.csv
+[2026-02-10 15:54:58] INFO: ✓ Parsed 100 rows
+[2026-02-10 15:54:58] INFO: Transforming and validating...
+[2026-02-10 15:54:58] WARN: Skipping invalid property: Invalid email address
+[2026-02-10 15:54:58] WARN: Skipping invalid property: Invalid email address
+[2026-02-10 15:54:58] INFO: ✓ Valid properties: 98
+[2026-02-10 15:54:58] INFO: 
+Step 1: Importing property data...
+[2026-02-10 15:54:58] INFO: Processing batch 1/1 (98 properties)
+[2026-02-10 15:55:10] INFO: ✓ Imported 98 properties
+[2026-02-10 15:55:10] INFO: 
+Step 2: Migrating images for 98 properties...
+[2026-02-10 15:55:10] INFO: This may take a while (downloading from Wix, uploading to Supabase)
+[2026-02-10 15:55:40] WARN: Partial success for 21fb9b36-3cbd-46ac-8332-2e3dd85b474e: 9 image(s) failed
+[2026-02-10 15:56:39] WARN: Partial success for a0d9faac-7fd3-45e1-893e-d98e326a7f19: 27 image(s) failed
+[2026-02-10 15:57:09] WARN: Partial success for 065ed654-2230-4c98-8b8f-c71d48868a04: 11 image(s) failed
+[2026-02-10 15:57:54] WARN: Partial success for d97b5505-fdb6-43e8-8830-a7ad42d6a905: 18 image(s) failed
+[2026-02-10 15:58:53] WARN: Partial success for 2d779d40-eab9-42f5-adfe-878490a0b53b: 30 image(s) failed
+[2026-02-10 15:59:39] WARN: Partial success for e1b6bd00-1a0d-442d-8d92-59531edc66a9: 14 image(s) failed
+[2026-02-10 15:59:54] WARN: Partial success for cd569cf9-22cf-41c2-a8b7-15855afdbf96: 1 image(s) failed
+[2026-02-10 16:00:54] WARN: Partial success for d6862a74-b9f9-4209-b851-aae6a3535ee9: 28 image(s) failed
+[2026-02-10 16:01:38] WARN: Partial success for b5d7b053-c659-4f5a-86a6-ea89ceda9ff7: 14 image(s) failed
+[2026-02-10 16:02:08] WARN: Partial success for 4f25277a-d080-4a8f-8099-12c3a7fb2ce0: 5 image(s) failed
+[2026-02-10 16:02:39] WARN: Partial success for 450125a0-cbe6-4ba6-915d-7d54bc71c39f: 8 image(s) failed
+[2026-02-10 16:03:24] WARN: Partial success for d502540e-a3f2-4494-bce2-43fd9d4c8bac: 17 image(s) failed
+[2026-02-10 16:03:54] WARN: Partial success for d509eccc-cfd7-4479-88a1-a82d72ffc2f2: 7 image(s) failed
+[2026-02-10 16:04:24] WARN: Partial success for 2d75e5da-e5c5-44aa-849a-2161ab92065a: 8 image(s) failed
+[2026-02-10 16:05:08] WARN: Partial success for 0f84749b-2081-4e49-8d72-24196e0fe6a5: 17 image(s) failed
+[2026-02-10 16:05:40] WARN: Partial success for ecf211e8-7993-4f66-a9fe-7143ccc4d486: 11 image(s) failed
+[2026-02-10 16:06:25] WARN: Partial success for f1f775ce-77e5-4885-a330-92e1d82c9413: 15 image(s) failed
+[2026-02-10 16:07:09] WARN: Partial success for b7bfc16a-adde-4ba7-b8ab-15dc64d39f7a: 12 image(s) failed
+[2026-02-10 16:07:39] WARN: Partial success for 45e7e816-eee1-4434-bdc6-5813698ab5d4: 11 image(s) failed
+[2026-02-10 16:08:09] WARN: Partial success for e29176f2-6f10-4c08-9477-6750a271db77: 7 image(s) failed
+[2026-02-10 16:08:40] WARN: Partial success for 9bcba476-6974-4f98-ab67-7c41798b537d: 9 image(s) failed
+[2026-02-10 16:09:09] WARN: Partial success for d0283434-e568-4495-9a75-e63a3c5aa3ea: 10 image(s) failed
+[2026-02-10 16:10:09] WARN: Partial success for b980552e-3899-4aaa-a7cb-fb3f6c529424: 27 image(s) failed
+[2026-02-10 16:10:53] WARN: Partial success for 22bc58f3-1076-4647-89de-405967dc024c: 13 image(s) failed
+[2026-02-10 16:11:23] WARN: Partial success for 3beb5b72-b3aa-4309-975f-7c094088dde5: 8 image(s) failed
+[2026-02-10 16:12:09] WARN: Partial success for a3289726-4edb-487d-a8fe-a6e4472e55e3: 12 image(s) failed
+[2026-02-10 16:12:39] WARN: Partial success for 4c83ec4e-774d-42d5-a189-9800746ec9d2: 7 image(s) failed
+[2026-02-10 16:12:54] WARN: Partial success for de28de17-21a7-43b2-99d0-7d91dc3fab9d: 1 image(s) failed
+[2026-02-10 16:13:38] WARN: Partial success for 21b45c84-64c0-491e-9130-6c948a808b82: 18 image(s) failed
+[2026-02-10 16:14:08] WARN: Partial success for 44a29b00-a385-47d6-9639-bd8df4db5277: 11 image(s) failed
+[2026-02-10 16:14:39] WARN: Partial success for a970d673-15a7-48d8-95e7-87a835b554f1: 2 image(s) failed
+[2026-02-10 16:15:24] WARN: Partial success for dd11bd5d-b911-43df-9083-2293c381b4e1: 21 image(s) failed
+[2026-02-10 16:16:09] WARN: Partial success for e8e9bd37-8bc1-45b6-9d6d-7f1e3553f1bd: 14 image(s) failed
+[2026-02-10 16:16:38] WARN: Partial success for 4090bef8-6e16-4c47-9030-1da2ae4db8b7: 6 image(s) failed
+[2026-02-10 16:17:23] WARN: Partial success for 4c8dd37f-64fc-460a-af14-a510257d98e6: 12 image(s) failed
+[2026-02-10 16:18:53] WARN: Partial success for 3fd94f79-3a66-441a-ae7f-58562c18dfb6: 42 image(s) failed
+[2026-02-10 16:19:23] WARN: Partial success for 278c01c3-cb25-46c9-8750-5cc51198b17a: 11 image(s) failed
+[2026-02-10 16:19:38] WARN: Partial success for ed6b403e-8708-4dfe-82cb-177fbfabe444: 1 image(s) failed
+[2026-02-10 16:20:22] WARN: Partial success for f2af724b-831b-4a8f-af31-cf905d52966c: 19 image(s) failed
+[2026-02-10 16:21:37] WARN: Partial success for 2335e380-4353-423a-bfcf-9835dbaab533: 32 image(s) failed
+[2026-02-10 16:22:07] WARN: Partial success for 65e80de0-3924-4d51-903e-fe845f78ff06: 11 image(s) failed
+[2026-02-10 16:22:38] WARN: Partial success for 5d20e608-8d9d-4a5a-b27d-de3ed61b4c59: 8 image(s) failed
+[2026-02-10 16:23:08] WARN: Partial success for 936a5e8a-1095-4241-a498-e825c2bc78b4: 11 image(s) failed
+[2026-02-10 16:23:39] WARN: Partial success for 1124b1c3-36c6-4103-8418-85290b108966: 9 image(s) failed
+[2026-02-10 16:24:24] WARN: Partial success for 5d0361a9-d42d-4366-8b92-26054a549e99: 15 image(s) failed
+[2026-02-10 16:24:54] WARN: Partial success for b294aec4-cc80-45fb-a6de-9fc99bdf74e4: 8 image(s) failed
+[2026-02-10 16:25:24] WARN: Partial success for 4d47df31-a872-4b6b-8605-a47372b766df: 8 image(s) failed
+[2026-02-10 16:26:09] WARN: Partial success for e22be043-2a37-4fe3-b40d-e3101aabee65: 12 image(s) failed
+[2026-02-10 16:26:54] WARN: Partial success for eae651fd-43b9-482b-81e3-56ecec7c5b41: 16 image(s) failed
+[2026-02-10 16:28:08] WARN: Partial success for 46593398-6911-4a90-b4ae-ba998870d206: 34 image(s) failed
+[2026-02-10 16:28:39] WARN: Partial success for 57765411-ebe3-479e-8b1a-ee46f0e7229e: 9 image(s) failed
+[2026-02-10 16:29:09] WARN: Partial success for 049e934a-a45e-4cdb-8b54-9da3589ade5c: 10 image(s) failed
+[2026-02-10 16:30:09] WARN: Partial success for f784a696-917c-4911-9e64-a2fa250b0dfb: 29 image(s) failed
+[2026-02-10 16:30:53] WARN: Partial success for 74326246-863a-4dc6-8522-0811f43431ec: 16 image(s) failed
+[2026-02-10 16:31:23] WARN: Partial success for 9aef9560-dcb8-4a70-9f19-e3f65521cf20: 11 image(s) failed
+[2026-02-10 16:32:09] WARN: Partial success for dd534cba-3572-4c14-a820-0139efdcf5d4: 17 image(s) failed
+[2026-02-10 16:32:40] WARN: Partial success for 75c4fefc-980c-4dde-9c50-3eae55943ea2: 10 image(s) failed
+[2026-02-10 16:33:10] WARN: Partial success for 05053502-9cdc-4ef9-b174-111981e7eab8: 10 image(s) failed
+[2026-02-10 16:33:55] WARN: Partial success for 7c84d1c4-da0a-47ea-9c61-e6397d2b227c: 17 image(s) failed
+[2026-02-10 16:35:24] WARN: Partial success for 1af3bbce-4b2d-45d9-8637-703da75d8626: 50 image(s) failed
+[2026-02-10 16:36:09] WARN: Partial success for 7cca00b8-1b65-445e-8855-12e964c881d3: 20 image(s) failed
+[2026-02-10 16:36:55] WARN: Partial success for 07737c0c-8a33-4e78-a0cc-557827f09524: 15 image(s) failed
+[2026-02-10 16:37:25] WARN: Partial success for d20f23b1-19ae-49fc-bc4e-1201eb3bd349: 8 image(s) failed
+[2026-02-10 16:37:55] WARN: Partial success for a14de700-7f72-4415-8dc1-97b92f48824d: 9 image(s) failed
+[2026-02-10 16:43:42] WARN: Partial success for cf142baa-e58c-46ce-88bf-9a988af01aef: 78 image(s) failed
+[2026-02-10 16:44:27] WARN: Partial success for 0e0fc151-3e94-496a-9898-1d6ff555844c: 18 image(s) failed

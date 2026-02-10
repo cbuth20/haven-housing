@@ -12,7 +12,10 @@ import {
   BuildingOfficeIcon,
   DocumentTextIcon,
   UsersIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  BuildingLibraryIcon,
+  ShieldCheckIcon,
+  BriefcaseIcon
 } from '@heroicons/react/24/outline'
 
 export function Header() {
@@ -51,12 +54,27 @@ export function Header() {
             >
               About
             </Link>
-            <Link
-              href="/services"
-              className="text-gray-700 hover:text-navy font-medium"
+
+            {/* Services Dropdown */}
+            <Dropdown
+              trigger={
+                <button className="flex items-center gap-1 text-gray-700 hover:text-navy font-medium transition-colors">
+                  Services
+                  <ChevronDownIcon className="h-4 w-4" />
+                </button>
+              }
             >
-              Services
-            </Link>
+              <DropdownLink href="/services/government" icon={BuildingLibraryIcon}>
+                Government
+              </DropdownLink>
+              <DropdownLink href="/services/insurance" icon={ShieldCheckIcon}>
+                Insurance
+              </DropdownLink>
+              <DropdownLink href="/services/corporate" icon={BriefcaseIcon}>
+                Corporate
+              </DropdownLink>
+            </Dropdown>
+
             <Link
               href="/properties"
               className="text-gray-700 hover:text-navy font-medium"

@@ -5,6 +5,7 @@ import { Property } from '@/types/property'
 import { loadGoogleMaps } from '@/lib/google-maps'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { formatCurrency } from '@/lib/utils'
+import { getPropertyDisplayTitle } from '@/lib/property-utils'
 
 interface MapViewProps {
   properties: Property[]
@@ -28,7 +29,7 @@ export function MapView({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize map
+  // Initialize map (only once)
   useEffect(() => {
     const initMap = async () => {
       try {
@@ -78,7 +79,16 @@ export function MapView({
     }
 
     initMap()
-  }, [center.lat, center.lng, zoom])
+  }, []) // Only run once on mount
+
+  // Update center and zoom when they change (without re-initializing)
+  useEffect(() => {
+    if (!mapInstanceRef.current || isLoading) return
+
+    console.log('🗺️ MapView: Updating center to:', center, 'zoom:', zoom)
+    mapInstanceRef.current.setCenter(center)
+    mapInstanceRef.current.setZoom(zoom)
+  }, [center.lat, center.lng, zoom, isLoading])
 
   // Update markers when properties change
   useEffect(() => {
@@ -106,54 +116,89 @@ export function MapView({
         lng: Number(property.longitude),
       }
 
+      const displayTitle = getPropertyDisplayTitle(property)
+
       const marker = new google.maps.Marker({
         position,
         map: mapInstanceRef.current!,
-        title: property.title,
-        // Remove animation to avoid timing issues
+        title: displayTitle,
+        animation: google.maps.Animation.DROP,
       })
 
       // Add click listener
-      marker.addListener('click', () => {
-        console.log('🗺️ MapView: Marker clicked for', property.title)
-
-        if (onMarkerClick) {
-          onMarkerClick(property)
+      marker.addListener('click', (e: google.maps.MapMouseEvent) => {
+        // Prevent event bubbling
+        if (e) {
+          e.stop?.()
         }
 
-        // Show info window
+        console.log('🗺️ MapView: Marker clicked for', displayTitle)
+
+        // Show info window first
         const content = `
-          <div style="padding: 8px; max-width: 250px;">
+          <div style="padding: 12px; max-width: 280px;">
             ${
               property.cover_photo_url
-                ? `<img src="${property.cover_photo_url}" alt="${property.title}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />`
+                ? `<img src="${property.cover_photo_url}" alt="${displayTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; cursor: pointer;" onclick="window.markerImageClick_${index}()" />`
                 : ''
             }
-            <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 4px;">${property.title}</h3>
+            <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #063665;">${displayTitle}</h3>
             <p style="color: #666; font-size: 14px; margin-bottom: 8px;">
-              ${property.city}, ${property.state}
+              ${property.street_address ? `${property.street_address}<br/>` : ''}
+              ${property.city}, ${property.state} ${property.zip_code}
             </p>
             ${
-              property.beds || property.baths
+              property.beds || property.baths || property.square_footage
                 ? `<p style="color: #666; font-size: 14px; margin-bottom: 8px;">
-                ${property.beds ? `${property.beds} bed${property.beds > 1 ? 's' : ''}` : ''}
-                ${property.beds && property.baths ? '•' : ''}
-                ${property.baths ? `${property.baths} bath${property.baths > 1 ? 's' : ''}` : ''}
+                ${property.beds ? `${property.beds} bed${property.beds !== 1 ? 's' : ''}` : ''}
+                ${property.beds && property.baths ? ' • ' : ''}
+                ${property.baths ? `${property.baths} bath${property.baths !== 1 ? 's' : ''}` : ''}
+                ${property.square_footage ? ` • ${property.square_footage.toLocaleString()} sq ft` : ''}
               </p>`
                 : ''
             }
             ${
               property.monthly_rent
-                ? `<p style="color: #063665; font-weight: bold; font-size: 16px;">
+                ? `<p style="color: #063665; font-weight: bold; font-size: 18px; margin-bottom: 8px;">
                 ${formatCurrency(property.monthly_rent)}/mo
               </p>`
                 : ''
             }
+            <button
+              onclick="window.markerClick_${index}()"
+              style="
+                background: #F97316;
+                color: white;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-weight: 600;
+                cursor: pointer;
+                width: 100%;
+                font-size: 14px;
+              "
+            >
+              View Details
+            </button>
           </div>
         `
 
         infoWindowRef.current?.setContent(content)
         infoWindowRef.current?.open(mapInstanceRef.current!, marker)
+
+        // Set up click handler for the button
+        ;(window as any)[`markerClick_${index}`] = () => {
+          if (onMarkerClick) {
+            onMarkerClick(property)
+          }
+        }
+
+        // Set up click handler for the image
+        ;(window as any)[`markerImageClick_${index}`] = () => {
+          if (onMarkerClick) {
+            onMarkerClick(property)
+          }
+        }
       })
 
       markersRef.current.push(marker)

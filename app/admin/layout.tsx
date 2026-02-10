@@ -12,6 +12,8 @@ import {
   DocumentTextIcon,
   UsersIcon,
   Cog6ToothIcon,
+  ArrowLeftIcon,
+  ChartBarIcon,
 } from '@heroicons/react/24/outline'
 
 export default function AdminLayout({
@@ -47,7 +49,7 @@ export default function AdminLayout({
     {
       name: 'Dashboard',
       href: '/admin',
-      icon: HomeIcon,
+      icon: ChartBarIcon,
       current: pathname === '/admin',
     },
     {
@@ -72,46 +74,57 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
+      <div className="flex h-screen overflow-hidden">
         {/* Sidebar */}
-        <div className="w-64 bg-navy fixed left-0 top-16 bottom-0">
-          <div className="flex flex-col h-full">
-            {/* Admin Label */}
-            <div className="p-6 border-b border-navy-700">
-              <p className="text-xs font-semibold text-gray-300 uppercase tracking-wider">
-                Admin Dashboard
-              </p>
-            </div>
+        <div className="w-64 bg-navy flex-shrink-0 flex flex-col">
+          {/* Logo/Branding */}
+          <div className="p-6 border-b border-navy-700">
+            <h1 className="text-xl font-heading font-bold text-white">
+              Haven Housing
+            </h1>
+            <p className="text-xs text-gray-300 mt-1 uppercase tracking-wider">
+              Admin Dashboard
+            </p>
+          </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 px-4 py-6 space-y-1">
-              {navigation.map((item) => {
-                const Icon = item.icon
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={`
-                      flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
-                      ${
-                        item.current
-                          ? 'bg-navy-700 text-white'
-                          : 'text-gray-300 hover:bg-navy-700 hover:text-white'
-                      }
-                    `}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.name}
-                  </Link>
-                )
-              })}
-            </nav>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+            {navigation.map((item) => {
+              const Icon = item.icon
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                    ${
+                      item.current
+                        ? 'bg-navy-700 text-white'
+                        : 'text-gray-300 hover:bg-navy-700 hover:text-white'
+                    }
+                  `}
+                >
+                  <Icon className="h-5 w-5" />
+                  {item.name}
+                </Link>
+              )
+            })}
+          </nav>
 
+          {/* Back to Home Button */}
+          <div className="p-4 border-t border-navy-700">
+            <Link
+              href="/"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:bg-navy-700 hover:text-white transition-colors"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+              Back to Home
+            </Link>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 ml-64">
+        <div className="flex-1 overflow-y-auto">
           <div className="p-8">{children}</div>
         </div>
       </div>
