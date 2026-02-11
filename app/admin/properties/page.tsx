@@ -9,12 +9,26 @@ import { PropertyForm } from '@/components/forms/PropertyForm'
 import { Modal } from '@/components/common/Modal'
 import { Button } from '@/components/common/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import { Select } from '@/components/common/Select'
-import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
+import {
+  PlusIcon,
+  MagnifyingGlassIcon,
+  PencilIcon,
+  TrashIcon,
+  XMarkIcon,
+  StarIcon,
+} from '@heroicons/react/24/outline'
+import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { useProperties } from '@/hooks/useProperties'
 import { usePropertySearch } from '@/hooks/usePropertySearch'
 import Image from 'next/image'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
+
+const STATUS_CHIPS = [
+  { value: 'all', label: 'All', color: 'bg-gray-100 text-gray-700 border-gray-300', activeColor: 'bg-navy text-white border-navy' },
+  { value: 'published', label: 'Published', color: 'bg-green-50 text-green-700 border-green-300', activeColor: 'bg-green-600 text-white border-green-600' },
+  { value: 'draft', label: 'Draft', color: 'bg-gray-50 text-gray-600 border-gray-300', activeColor: 'bg-gray-600 text-white border-gray-600' },
+  { value: 'archived', label: 'Archived', color: 'bg-red-50 text-red-700 border-red-300', activeColor: 'bg-red-600 text-white border-red-600' },
+] as const
 
 export default function PropertiesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -24,39 +38,35 @@ export default function PropertiesPage() {
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [featuredOnly, setFeaturedOnly] = useState(false)
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
   const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, archived: 0 })
-  const [isStatsLoading, setIsStatsLoading] = useState(true)
 
   const { deleteProperty, isLoading: isDeleting } = useProperties()
-  const { properties, isLoading, searchProperties } = usePropertySearch({ includeAuth: true })
+  const { properties, totalCount, isLoading, searchProperties } = usePropertySearch({ includeAuth: true })
 
-  // Keep a stable ref to searchProperties so effects/callbacks never go stale
   const searchRef = useRef(searchProperties)
   searchRef.current = searchProperties
 
+  // Efficient count-only stats query (no row data fetched)
   const fetchStats = useCallback(async () => {
     try {
-      setIsStatsLoading(true)
-      const { data, error } = await supabase
-        .from('properties')
-        .select('id, status')
-
-      if (error) throw error
-
-      const all = data || []
+      const [totalRes, pubRes, draftRes, archRes] = await Promise.all([
+        supabase.from('properties').select('*', { count: 'exact', head: true }),
+        supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'published'),
+        supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'draft'),
+        supabase.from('properties').select('*', { count: 'exact', head: true }).eq('status', 'archived'),
+      ])
       setStats({
-        total: all.length,
-        published: all.filter((p) => p.status === 'published').length,
-        draft: all.filter((p) => p.status === 'draft').length,
-        archived: all.filter((p) => p.status === 'archived').length,
+        total: totalRes.count ?? 0,
+        published: pubRes.count ?? 0,
+        draft: draftRes.count ?? 0,
+        archived: archRes.count ?? 0,
       })
     } catch (error) {
       console.error('Error fetching stats:', error)
-    } finally {
-      setIsStatsLoading(false)
     }
   }, [])
 
@@ -66,7 +76,7 @@ export default function PropertiesPage() {
       status: statusFilter === 'all' ? 'all' : statusFilter as any,
       sortBy: sortKey,
       sortDirection,
-      limit: 200,
+      limit: 500,
     })
   }, [searchQuery, statusFilter, sortKey, sortDirection])
 
@@ -89,40 +99,47 @@ export default function PropertiesPage() {
     return () => clearTimeout(timer)
   }, [doSearch])
 
-  const handleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortKey(key)
-      setSortDirection('asc')
-    }
-  }
+  // Client-side featured filter (applied on top of server results)
+  const displayProperties = useMemo(() => {
+    if (!featuredOnly) return properties
+    return properties.filter((p) => p.featured)
+  }, [properties, featuredOnly])
 
-  const handleRowClick = (property: Property) => {
+  const handleSort = useCallback((key: string) => {
+    setSortKey((prev) => {
+      if (prev === key) {
+        setSortDirection((d) => (d === 'asc' ? 'desc' : 'asc'))
+        return prev
+      }
+      setSortDirection('asc')
+      return key
+    })
+  }, [])
+
+  const handleRowClick = useCallback((property: Property) => {
     setSelectedProperty(property)
     setIsDetailsOpen(true)
-  }
+  }, [])
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     setSelectedProperty(null)
     setIsFormOpen(true)
-  }
+  }, [])
 
-  const handleEdit = (property: Property) => {
+  const handleEdit = useCallback((property: Property) => {
     setIsDetailsOpen(false)
     setSelectedProperty(property)
     setIsFormOpen(true)
-  }
+  }, [])
 
-  const handleDeleteClick = (property: Property) => {
+  const handleDeleteClick = useCallback((property: Property) => {
     setIsDetailsOpen(false)
     setPropertyToDelete(property)
     setIsDeleteModalOpen(true)
-  }
+  }, [])
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (!propertyToDelete) return
-
     try {
       await deleteProperty(propertyToDelete.id)
       doSearch()
@@ -132,21 +149,20 @@ export default function PropertiesPage() {
     } catch (error) {
       console.error('Error deleting property:', error)
     }
-  }
+  }, [propertyToDelete, deleteProperty, doSearch, fetchStats])
 
-  const handleFormSuccess = async () => {
+  const handleFormSuccess = useCallback(async () => {
     setIsFormOpen(false)
     setSelectedProperty(null)
     doSearch()
     fetchStats()
-  }
+  }, [doSearch, fetchStats])
 
-  const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
-    { value: 'draft', label: 'Draft' },
-    { value: 'published', label: 'Published' },
-    { value: 'archived', label: 'Archived' },
-  ]
+  const clearSearch = useCallback(() => {
+    setSearchQuery('')
+  }, [])
+
+  const hasActiveFilters = searchQuery || statusFilter !== 'all' || featuredOnly
 
   const columns: Column<Property>[] = useMemo(
     () => [
@@ -302,7 +318,7 @@ export default function PropertiesPage() {
         ),
       },
     ],
-    []
+    [handleEdit, handleDeleteClick]
   )
 
   return (
@@ -313,8 +329,8 @@ export default function PropertiesPage() {
           <h1 className="text-3xl font-heading font-bold text-navy">
             Properties
           </h1>
-          <p className="text-gray-600 mt-2">
-            Manage your property listings
+          <p className="text-gray-600 mt-1">
+            <span className="font-semibold text-navy">{stats.total.toLocaleString()}</span> total properties in database
           </p>
         </div>
         <Button variant="primary" onClick={handleCreateNew}>
@@ -325,43 +341,132 @@ export default function PropertiesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow">
+        <button
+          onClick={() => setStatusFilter('all')}
+          className={`p-4 rounded-lg shadow text-left transition-all ${
+            statusFilter === 'all' ? 'ring-2 ring-navy bg-navy/5' : 'bg-white hover:shadow-md'
+          }`}
+        >
           <p className="text-sm text-gray-600">Total</p>
-          <p className="text-2xl font-bold text-navy">{stats.total}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+          <p className="text-2xl font-bold text-navy">{stats.total.toLocaleString()}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('published')}
+          className={`p-4 rounded-lg shadow text-left transition-all ${
+            statusFilter === 'published' ? 'ring-2 ring-green-500 bg-green-50' : 'bg-white hover:shadow-md'
+          }`}
+        >
           <p className="text-sm text-gray-600">Published</p>
-          <p className="text-2xl font-bold text-green-600">{stats.published}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+          <p className="text-2xl font-bold text-green-600">{stats.published.toLocaleString()}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('draft')}
+          className={`p-4 rounded-lg shadow text-left transition-all ${
+            statusFilter === 'draft' ? 'ring-2 ring-gray-400 bg-gray-50' : 'bg-white hover:shadow-md'
+          }`}
+        >
           <p className="text-sm text-gray-600">Draft</p>
-          <p className="text-2xl font-bold text-gray-600">{stats.draft}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow">
+          <p className="text-2xl font-bold text-gray-600">{stats.draft.toLocaleString()}</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('archived')}
+          className={`p-4 rounded-lg shadow text-left transition-all ${
+            statusFilter === 'archived' ? 'ring-2 ring-red-400 bg-red-50' : 'bg-white hover:shadow-md'
+          }`}
+        >
           <p className="text-sm text-gray-600">Archived</p>
-          <p className="text-2xl font-bold text-red-600">{stats.archived}</p>
-        </div>
+          <p className="text-2xl font-bold text-red-600">{stats.archived.toLocaleString()}</p>
+        </button>
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search properties..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            options={statusOptions}
+      {/* Search & Filter Chips */}
+      <div className="bg-white p-4 rounded-lg shadow space-y-3">
+        {/* Search Input */}
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by title, city, state, address, or zip..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
           />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-0.5 hover:bg-gray-100 rounded-full transition-colors"
+              aria-label="Clear search"
+            >
+              <XMarkIcon className="h-4 w-4 text-gray-400" />
+            </button>
+          )}
         </div>
+
+        {/* Filter Chips */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-gray-500 uppercase tracking-wide mr-1">Status:</span>
+          {STATUS_CHIPS.map((chip) => (
+            <button
+              key={chip.value}
+              onClick={() => setStatusFilter(chip.value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                statusFilter === chip.value ? chip.activeColor : chip.color
+              }`}
+            >
+              {chip.label}
+              {chip.value !== 'all' && (
+                <span className="ml-1 opacity-75">
+                  {chip.value === 'published' ? stats.published : chip.value === 'draft' ? stats.draft : stats.archived}
+                </span>
+              )}
+            </button>
+          ))}
+
+          <div className="w-px h-5 bg-gray-300 mx-1" />
+
+          <button
+            onClick={() => setFeaturedOnly(!featuredOnly)}
+            className={`px-3 py-1 rounded-full text-xs font-medium border transition-all flex items-center gap-1 ${
+              featuredOnly
+                ? 'bg-yellow-500 text-white border-yellow-500'
+                : 'bg-yellow-50 text-yellow-700 border-yellow-300'
+            }`}
+          >
+            {featuredOnly ? (
+              <StarIconSolid className="h-3 w-3" />
+            ) : (
+              <StarIcon className="h-3 w-3" />
+            )}
+            Featured
+          </button>
+
+          {hasActiveFilters && (
+            <>
+              <div className="w-px h-5 bg-gray-300 mx-1" />
+              <button
+                onClick={() => {
+                  setSearchQuery('')
+                  setStatusFilter('all')
+                  setFeaturedOnly(false)
+                }}
+                className="px-3 py-1 rounded-full text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              >
+                Clear all
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Result count */}
+        {!isLoading && (
+          <p className="text-xs text-gray-500">
+            {featuredOnly
+              ? `${displayProperties.length} featured of ${properties.length} results`
+              : `${properties.length} results`
+            }
+            {totalCount > properties.length && ` (${totalCount.toLocaleString()} total matches)`}
+          </p>
+        )}
       </div>
 
       {/* Properties Table */}
@@ -372,13 +477,15 @@ export default function PropertiesPage() {
       ) : (
         <DataTable
           columns={columns}
-          data={properties}
+          data={displayProperties}
           onRowClick={handleRowClick}
           sortKey={sortKey}
           sortDirection={sortDirection}
           onSort={handleSort}
+          pageSize={50}
+          totalItems={featuredOnly ? displayProperties.length : totalCount}
           emptyMessage={
-            searchQuery || statusFilter !== 'all'
+            hasActiveFilters
               ? 'No properties match your filters'
               : 'No properties yet. Click "Add Property" to create your first property!'
           }

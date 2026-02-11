@@ -54,6 +54,26 @@ export class FieldTransformer {
     return typeof value === 'string' ? value : null
   }
 
+  // Get parsed location data, falling back to Street Address when Location column is empty
+  private getLocationData(row: WixCSVRow): any {
+    const locationCol = row['City, State Zipcode, Country']
+    if (locationCol) {
+      const parsed = this.parseJSON(locationCol)
+      if (typeof parsed === 'object' && parsed !== null) {
+        return parsed
+      }
+    }
+    // Fallback: some rows have the location JSON in Street Address instead
+    const streetAddr = row['Street Address']
+    if (streetAddr) {
+      const parsed = this.parseJSON(streetAddr)
+      if (typeof parsed === 'object' && parsed !== null && (parsed.city || parsed.subdivisions || parsed.postalCode)) {
+        return parsed
+      }
+    }
+    return null
+  }
+
   private extractTitle(row: WixCSVRow): string {
     return row.Title || 'Untitled Property'
   }
@@ -67,105 +87,66 @@ export class FieldTransformer {
     }
 
     const parsed = this.parseJSON(addr)
-    if (typeof parsed === 'object' && parsed?.formatted) {
-      return parsed.formatted
+    if (typeof parsed === 'object') {
+      // Prefer streetAddress.formattedAddressLine for the actual street
+      if (parsed.streetAddress?.formattedAddressLine) {
+        return parsed.streetAddress.formattedAddressLine
+      }
+      if (parsed.formatted) {
+        return parsed.formatted
+      }
     }
 
     return String(addr || '')
   }
 
   private extractCity(row: WixCSVRow): string {
-    // In actual CSV, city data is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row.City
-
-    // Handle complex JSON structure
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object') {
-      // Try city field first
-      if (parsed.city) {
-        return parsed.city
-      }
-      // Try formatted address parsing
+    const parsed = this.getLocationData(row)
+    if (parsed) {
+      if (parsed.city) return parsed.city
       if (parsed.formatted) {
         const parts = parsed.formatted.split(',')
         return parts[0]?.trim() || ''
       }
     }
-
-    return String(locationData || '')
+    return String(row.City || '')
   }
 
   private extractState(row: WixCSVRow): string {
-    // In actual CSV, state data is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row.State
-
-    // Handle JSON with subdivisions: {subdivisions: [{code: "KS"}]}
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object') {
-      if (parsed.subdivisions?.[0]?.code) {
-        return parsed.subdivisions[0].code
-      }
-      if (parsed.subdivision) {
-        return parsed.subdivision
-      }
-      if (parsed.state) {
-        return parsed.state
-      }
+    const parsed = this.getLocationData(row)
+    if (parsed) {
+      if (parsed.subdivisions?.[0]?.code) return parsed.subdivisions[0].code
+      if (parsed.subdivision) return parsed.subdivision
+      if (parsed.state) return parsed.state
     }
-
-    return String(locationData || '')
+    return String(row.State || '')
   }
 
   private extractZipCode(row: WixCSVRow): string {
-    // In actual CSV, zip code is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row['Zip Code']
-
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object' && parsed.postalCode) {
-      // Remove extended zip codes like "63011-4246" -> "63011"
+    const parsed = this.getLocationData(row)
+    if (parsed?.postalCode) {
       return parsed.postalCode.split('-')[0]
     }
-
-    return String(locationData || '')
+    return String(row['Zip Code'] || '')
   }
 
   private extractCountry(row: WixCSVRow): string {
-    // In actual CSV, country is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row.Country
-
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object' && parsed.country) {
-      return parsed.country
-    }
-
-    return String(locationData || MIGRATION_CONFIG.defaultCountry)
+    const parsed = this.getLocationData(row)
+    if (parsed?.country) return parsed.country
+    return String(row.Country || MIGRATION_CONFIG.defaultCountry)
   }
 
   private extractLatitude(row: WixCSVRow): number | null {
-    // In actual CSV, location is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row.Latitude
-
-    // Handle JSON: {location: {latitude: 39.02}}
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object' && parsed.location?.latitude) {
-      return Number(parsed.location.latitude)
-    }
-
-    const num = Number(locationData)
+    const parsed = this.getLocationData(row)
+    if (parsed?.location?.latitude) return Number(parsed.location.latitude)
+    const num = Number(row.Latitude)
     return isNaN(num) ? null : num
   }
 
   private extractLongitude(row: WixCSVRow): number | null {
-    // In actual CSV, location is in "City, State Zipcode, Country" column as JSON
-    const locationData = row['City, State Zipcode, Country'] || row.Longitude
-
-    // Handle JSON: {location: {longitude: -94.63}}
-    const parsed = this.parseJSON(locationData)
-    if (typeof parsed === 'object' && parsed.location?.longitude) {
-      return Number(parsed.location.longitude)
-    }
-
-    const num = Number(locationData)
+    const parsed = this.getLocationData(row)
+    if (parsed?.location?.longitude) return Number(parsed.location.longitude)
+    const num = Number(row.Longitude)
     return isNaN(num) ? null : num
   }
 
@@ -177,10 +158,19 @@ export class FieldTransformer {
     const sqft = row['Square Footage']
     if (!sqft) return null
 
-    // Parse "888 SF" -> 888
-    const numStr = String(sqft).replace(/[^\d]/g, '')
-    const num = parseInt(numStr, 10)
-    return isNaN(num) ? null : num
+    // Extract the first number from the string (handles "888 SF", multi-unit "1x1: 750 sq ft\n2x2: 1050", etc.)
+    const match = String(sqft).match(/(\d[\d,]*)\s*(?:sf|sq|$)/i)
+    if (match) {
+      const num = parseInt(match[1].replace(/,/g, ''), 10)
+      return isNaN(num) || num > 100000 ? null : num
+    }
+    // Fallback: just grab the first number
+    const fallback = String(sqft).match(/(\d+)/)
+    if (fallback) {
+      const num = parseInt(fallback[1], 10)
+      return isNaN(num) || num > 100000 ? null : num
+    }
+    return null
   }
 
   private extractUnitType(row: WixCSVRow): string | null {
@@ -237,9 +227,12 @@ export class FieldTransformer {
 
   private extractLandlordEmail(row: WixCSVRow): string | null {
     const email = row['Landlord Email']
-    // Basic email validation
-    if (email && typeof email === 'string' && email.includes('@')) {
-      return email
+    if (email && typeof email === 'string') {
+      // Clean up common CSV artifacts: trim whitespace, newlines, pipes
+      const cleaned = email.replace(/[\s|]+/g, ' ').trim()
+      if (cleaned.includes('@')) {
+        return cleaned
+      }
     }
     return null
   }
