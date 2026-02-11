@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, memo, useCallback } from 'react'
 import { Property } from '@/types/property'
 import { loadGoogleMaps } from '@/lib/google-maps'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { formatCurrency } from '@/lib/utils'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
+import { MAP_THEMES, THEME_ORDER, MapThemeKey } from './map-themes'
 
 interface MapViewProps {
   properties: Property[]
@@ -15,9 +16,9 @@ interface MapViewProps {
   className?: string
 }
 
-export function MapView({
+export const MapView = memo(function MapView({
   properties,
-  center = { lat: 39.8283, lng: -98.5795 }, // Center of USA
+  center = { lat: 39.8283, lng: -98.5795 },
   zoom = 4,
   onMarkerClick,
   className = 'w-full h-96',
@@ -26,88 +27,81 @@ export function MapView({
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<google.maps.Marker[]>([])
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null)
+  const onMarkerClickRef = useRef(onMarkerClick)
+  onMarkerClickRef.current = onMarkerClick
+
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeTheme, setActiveTheme] = useState<MapThemeKey>('aubergine')
 
-  // Initialize map (only once)
+  // Initialize map once
   useEffect(() => {
+    let cancelled = false
+
     const initMap = async () => {
       try {
-        console.log('🗺️ MapView: Starting initialization...')
-        setIsLoading(true)
-        setError(null)
-
-        console.log('🗺️ MapView: Loading Google Maps API...')
         await loadGoogleMaps()
+        if (cancelled || !mapRef.current) return
 
-        console.log('🗺️ MapView: Google Maps loaded, checking mapRef...')
-        if (!mapRef.current) {
-          console.error('🗺️ MapView: mapRef.current is null!')
-          return
-        }
-
-        console.log('🗺️ MapView: Creating map with center:', center, 'zoom:', zoom)
-        // Create map
         const map = new google.maps.Map(mapRef.current, {
           center,
           zoom,
-          mapTypeControl: true,
+          styles: MAP_THEMES[activeTheme].styles,
+          mapTypeControl: false,
           streetViewControl: true,
           fullscreenControl: true,
           zoomControl: true,
         })
 
         mapInstanceRef.current = map
-        console.log('🗺️ MapView: Map created successfully!')
-
-        // Create info window
         infoWindowRef.current = new google.maps.InfoWindow()
 
-        // Trigger resize to ensure map renders properly
         setTimeout(() => {
-          google.maps.event.trigger(map, 'resize')
-          map.setCenter(center)
-          console.log('🗺️ MapView: Triggered resize event')
+          if (!cancelled && mapInstanceRef.current) {
+            google.maps.event.trigger(map, 'resize')
+            map.setCenter(center)
+          }
         }, 100)
 
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       } catch (err: any) {
-        console.error('🗺️ MapView: Error loading Google Maps:', err)
-        setError(err.message || 'Failed to load map')
-        setIsLoading(false)
+        if (!cancelled) {
+          setError(err.message || 'Failed to load map')
+          setIsLoading(false)
+        }
       }
     }
 
     initMap()
-  }, []) // Only run once on mount
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update center and zoom when they change (without re-initializing)
+  // Update center and zoom
   useEffect(() => {
     if (!mapInstanceRef.current || isLoading) return
-
-    console.log('🗺️ MapView: Updating center to:', center, 'zoom:', zoom)
     mapInstanceRef.current.setCenter(center)
     mapInstanceRef.current.setZoom(zoom)
   }, [center.lat, center.lng, zoom, isLoading])
 
-  // Update markers when properties change
+  // Apply theme
+  useEffect(() => {
+    if (!mapInstanceRef.current || isLoading) return
+    mapInstanceRef.current.setOptions({ styles: MAP_THEMES[activeTheme].styles })
+  }, [activeTheme, isLoading])
+
+  // Update markers — uses ref for onMarkerClick so this doesn't re-fire on parent renders
   useEffect(() => {
     if (!mapInstanceRef.current || isLoading) return
 
-    console.log('🗺️ MapView: Updating markers for', properties.length, 'properties')
-
-    // Clear existing markers
+    // Clear existing
     markersRef.current.forEach((marker) => marker.setMap(null))
     markersRef.current = []
 
-    // If no properties, return early
     if (properties.length === 0) return
 
-    // Create bounds to fit all markers
     const bounds = new google.maps.LatLngBounds()
     let hasValidMarkers = false
 
-    // Add new markers
     properties.forEach((property, index) => {
       if (!property.latitude || !property.longitude) return
 
@@ -115,7 +109,6 @@ export function MapView({
         lat: Number(property.latitude),
         lng: Number(property.longitude),
       }
-
       const displayTitle = getPropertyDisplayTitle(property)
 
       const marker = new google.maps.Marker({
@@ -125,21 +118,14 @@ export function MapView({
         animation: google.maps.Animation.DROP,
       })
 
-      // Add click listener
       marker.addListener('click', (e: google.maps.MapMouseEvent) => {
-        // Prevent event bubbling
-        if (e) {
-          e.stop?.()
-        }
+        if (e) e.stop?.()
 
-        console.log('🗺️ MapView: Marker clicked for', displayTitle)
-
-        // Show info window first
         const content = `
           <div style="padding: 12px; max-width: 280px;">
             ${
               property.cover_photo_url
-                ? `<img src="${property.cover_photo_url}" alt="${displayTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; cursor: pointer;" onclick="window.markerImageClick_${index}()" />`
+                ? `<img src="${property.cover_photo_url}" alt="${displayTitle}" style="width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 12px; cursor: pointer;" onclick="window.__mapMarkerClick_${index}()" />`
                 : ''
             }
             <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #063665;">${displayTitle}</h3>
@@ -151,9 +137,9 @@ export function MapView({
               property.beds || property.baths || property.square_footage
                 ? `<p style="color: #666; font-size: 14px; margin-bottom: 8px;">
                 ${property.beds ? `${property.beds} bed${property.beds !== 1 ? 's' : ''}` : ''}
-                ${property.beds && property.baths ? ' • ' : ''}
-                ${property.baths ? `${property.baths} bath${property.baths !== 1 ? 's' : ''}` : ''}
-                ${property.square_footage ? ` • ${property.square_footage.toLocaleString()} sq ft` : ''}
+                ${property.beds && property.baths ? ' &bull; ' : ''}
+                ${property.baths ? `${property.baths} bath${Number(property.baths) !== 1 ? 's' : ''}` : ''}
+                ${property.square_footage ? ` &bull; ${property.square_footage.toLocaleString()} sq ft` : ''}
               </p>`
                 : ''
             }
@@ -165,18 +151,8 @@ export function MapView({
                 : ''
             }
             <button
-              onclick="window.markerClick_${index}()"
-              style="
-                background: #F97316;
-                color: white;
-                border: none;
-                padding: 8px 16px;
-                border-radius: 6px;
-                font-weight: 600;
-                cursor: pointer;
-                width: 100%;
-                font-size: 14px;
-              "
+              onclick="window.__mapMarkerClick_${index}()"
+              style="background: #F97316; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; font-size: 14px;"
             >
               View Details
             </button>
@@ -186,18 +162,8 @@ export function MapView({
         infoWindowRef.current?.setContent(content)
         infoWindowRef.current?.open(mapInstanceRef.current!, marker)
 
-        // Set up click handler for the button
-        ;(window as any)[`markerClick_${index}`] = () => {
-          if (onMarkerClick) {
-            onMarkerClick(property)
-          }
-        }
-
-        // Set up click handler for the image
-        ;(window as any)[`markerImageClick_${index}`] = () => {
-          if (onMarkerClick) {
-            onMarkerClick(property)
-          }
+        ;(window as any)[`__mapMarkerClick_${index}`] = () => {
+          onMarkerClickRef.current?.(property)
         }
       })
 
@@ -206,29 +172,28 @@ export function MapView({
       hasValidMarkers = true
     })
 
-    // Fit map to show all markers
     if (hasValidMarkers) {
-      console.log('🗺️ MapView: Fitting bounds for', properties.length, 'properties')
       mapInstanceRef.current.fitBounds(bounds)
 
-      // Don't zoom in too much for a single marker
-      const listener = google.maps.event.addListenerOnce(
+      google.maps.event.addListenerOnce(
         mapInstanceRef.current,
         'idle',
         () => {
-          const currentZoom = mapInstanceRef.current!.getZoom()!
-          console.log('🗺️ MapView: Map idle, zoom level:', currentZoom)
+          const currentZoom = mapInstanceRef.current?.getZoom()
+          if (currentZoom == null) return
           if (properties.length === 1 && currentZoom > 15) {
             mapInstanceRef.current!.setZoom(15)
-          }
-          // For multiple properties, ensure reasonable max zoom
-          if (properties.length > 1 && currentZoom > 12) {
+          } else if (properties.length > 1 && currentZoom > 12) {
             mapInstanceRef.current!.setZoom(12)
           }
         }
       )
     }
-  }, [properties, onMarkerClick, isLoading])
+  }, [properties, isLoading])
+
+  const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setActiveTheme(e.target.value as MapThemeKey)
+  }, [])
 
   if (error) {
     return (
@@ -247,7 +212,7 @@ export function MapView({
   return (
     <div className={`relative ${className}`}>
       {isLoading && (
-        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
           <LoadingSpinner size="lg" />
         </div>
       )}
@@ -255,6 +220,21 @@ export function MapView({
         ref={mapRef}
         className={`w-full h-full rounded-lg ${isLoading ? 'opacity-0' : 'opacity-100'}`}
       />
+      {!isLoading && (
+        <div className="absolute top-3 right-3 z-10">
+          <select
+            value={activeTheme}
+            onChange={handleThemeChange}
+            className="bg-white/90 backdrop-blur-sm text-sm font-medium text-gray-700 border border-gray-300 rounded-lg px-3 py-1.5 shadow-md cursor-pointer hover:bg-white focus:outline-none focus:ring-2 focus:ring-navy"
+          >
+            {THEME_ORDER.map((key) => (
+              <option key={key} value={key}>
+                {MAP_THEMES[key].label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
     </div>
   )
-}
+})

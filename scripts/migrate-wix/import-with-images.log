@@ -1,121 +1,145 @@
-[2026-02-10 15:54:58] PHASE: Importing 100 Properties with Images
-[2026-02-10 15:54:58] INFO: Parsing CSV: ./All+Properties.csv
-[2026-02-10 15:54:58] INFO: ✓ Parsed 100 rows
-[2026-02-10 15:54:58] INFO: Transforming and validating...
-[2026-02-10 15:54:58] WARN: Skipping invalid property: Invalid email address
-[2026-02-10 15:54:58] WARN: Skipping invalid property: Invalid email address
-[2026-02-10 15:54:58] INFO: ✓ Valid properties: 98
-[2026-02-10 15:54:58] INFO: 
+[2026-02-11 05:44:50] PHASE: Importing 2805 Properties with Images
+[2026-02-11 05:44:50] INFO: Parsing CSV: ./All+Properties.csv
+[2026-02-11 05:44:50] INFO: ✓ Parsed 2805 rows
+[2026-02-11 05:44:50] INFO: Transforming and validating...
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Street address is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Street address is required, City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Invalid email address
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: City is required, State is required, Zip code is required
+[2026-02-11 05:44:50] WARN: Skipping invalid property: Too big: expected int to be <=9007199254740991
+[2026-02-11 05:44:50] INFO: ✓ Valid properties: 2722
+[2026-02-11 05:44:50] INFO: 
 Step 1: Importing property data...
-[2026-02-10 15:54:58] INFO: Processing batch 1/1 (98 properties)
-[2026-02-10 15:55:10] INFO: ✓ Imported 98 properties
-[2026-02-10 15:55:10] INFO: 
-Step 2: Migrating images for 98 properties...
-[2026-02-10 15:55:10] INFO: This may take a while (downloading from Wix, uploading to Supabase)
-[2026-02-10 15:55:40] WARN: Partial success for 21fb9b36-3cbd-46ac-8332-2e3dd85b474e: 9 image(s) failed
-[2026-02-10 15:56:39] WARN: Partial success for a0d9faac-7fd3-45e1-893e-d98e326a7f19: 27 image(s) failed
-[2026-02-10 15:57:09] WARN: Partial success for 065ed654-2230-4c98-8b8f-c71d48868a04: 11 image(s) failed
-[2026-02-10 15:57:54] WARN: Partial success for d97b5505-fdb6-43e8-8830-a7ad42d6a905: 18 image(s) failed
-[2026-02-10 15:58:53] WARN: Partial success for 2d779d40-eab9-42f5-adfe-878490a0b53b: 30 image(s) failed
-[2026-02-10 15:59:39] WARN: Partial success for e1b6bd00-1a0d-442d-8d92-59531edc66a9: 14 image(s) failed
-[2026-02-10 15:59:54] WARN: Partial success for cd569cf9-22cf-41c2-a8b7-15855afdbf96: 1 image(s) failed
-[2026-02-10 16:00:54] WARN: Partial success for d6862a74-b9f9-4209-b851-aae6a3535ee9: 28 image(s) failed
-[2026-02-10 16:01:38] WARN: Partial success for b5d7b053-c659-4f5a-86a6-ea89ceda9ff7: 14 image(s) failed
-[2026-02-10 16:02:08] WARN: Partial success for 4f25277a-d080-4a8f-8099-12c3a7fb2ce0: 5 image(s) failed
-[2026-02-10 16:02:39] WARN: Partial success for 450125a0-cbe6-4ba6-915d-7d54bc71c39f: 8 image(s) failed
-[2026-02-10 16:03:24] WARN: Partial success for d502540e-a3f2-4494-bce2-43fd9d4c8bac: 17 image(s) failed
-[2026-02-10 16:03:54] WARN: Partial success for d509eccc-cfd7-4479-88a1-a82d72ffc2f2: 7 image(s) failed
-[2026-02-10 16:04:24] WARN: Partial success for 2d75e5da-e5c5-44aa-849a-2161ab92065a: 8 image(s) failed
-[2026-02-10 16:05:08] WARN: Partial success for 0f84749b-2081-4e49-8d72-24196e0fe6a5: 17 image(s) failed
-[2026-02-10 16:05:40] WARN: Partial success for ecf211e8-7993-4f66-a9fe-7143ccc4d486: 11 image(s) failed
-[2026-02-10 16:06:25] WARN: Partial success for f1f775ce-77e5-4885-a330-92e1d82c9413: 15 image(s) failed
-[2026-02-10 16:07:09] WARN: Partial success for b7bfc16a-adde-4ba7-b8ab-15dc64d39f7a: 12 image(s) failed
-[2026-02-10 16:07:39] WARN: Partial success for 45e7e816-eee1-4434-bdc6-5813698ab5d4: 11 image(s) failed
-[2026-02-10 16:08:09] WARN: Partial success for e29176f2-6f10-4c08-9477-6750a271db77: 7 image(s) failed
-[2026-02-10 16:08:40] WARN: Partial success for 9bcba476-6974-4f98-ab67-7c41798b537d: 9 image(s) failed
-[2026-02-10 16:09:09] WARN: Partial success for d0283434-e568-4495-9a75-e63a3c5aa3ea: 10 image(s) failed
-[2026-02-10 16:10:09] WARN: Partial success for b980552e-3899-4aaa-a7cb-fb3f6c529424: 27 image(s) failed
-[2026-02-10 16:10:53] WARN: Partial success for 22bc58f3-1076-4647-89de-405967dc024c: 13 image(s) failed
-[2026-02-10 16:11:23] WARN: Partial success for 3beb5b72-b3aa-4309-975f-7c094088dde5: 8 image(s) failed
-[2026-02-10 16:12:09] WARN: Partial success for a3289726-4edb-487d-a8fe-a6e4472e55e3: 12 image(s) failed
-[2026-02-10 16:12:39] WARN: Partial success for 4c83ec4e-774d-42d5-a189-9800746ec9d2: 7 image(s) failed
-[2026-02-10 16:12:54] WARN: Partial success for de28de17-21a7-43b2-99d0-7d91dc3fab9d: 1 image(s) failed
-[2026-02-10 16:13:38] WARN: Partial success for 21b45c84-64c0-491e-9130-6c948a808b82: 18 image(s) failed
-[2026-02-10 16:14:08] WARN: Partial success for 44a29b00-a385-47d6-9639-bd8df4db5277: 11 image(s) failed
-[2026-02-10 16:14:39] WARN: Partial success for a970d673-15a7-48d8-95e7-87a835b554f1: 2 image(s) failed
-[2026-02-10 16:15:24] WARN: Partial success for dd11bd5d-b911-43df-9083-2293c381b4e1: 21 image(s) failed
-[2026-02-10 16:16:09] WARN: Partial success for e8e9bd37-8bc1-45b6-9d6d-7f1e3553f1bd: 14 image(s) failed
-[2026-02-10 16:16:38] WARN: Partial success for 4090bef8-6e16-4c47-9030-1da2ae4db8b7: 6 image(s) failed
-[2026-02-10 16:17:23] WARN: Partial success for 4c8dd37f-64fc-460a-af14-a510257d98e6: 12 image(s) failed
-[2026-02-10 16:18:53] WARN: Partial success for 3fd94f79-3a66-441a-ae7f-58562c18dfb6: 42 image(s) failed
-[2026-02-10 16:19:23] WARN: Partial success for 278c01c3-cb25-46c9-8750-5cc51198b17a: 11 image(s) failed
-[2026-02-10 16:19:38] WARN: Partial success for ed6b403e-8708-4dfe-82cb-177fbfabe444: 1 image(s) failed
-[2026-02-10 16:20:22] WARN: Partial success for f2af724b-831b-4a8f-af31-cf905d52966c: 19 image(s) failed
-[2026-02-10 16:21:37] WARN: Partial success for 2335e380-4353-423a-bfcf-9835dbaab533: 32 image(s) failed
-[2026-02-10 16:22:07] WARN: Partial success for 65e80de0-3924-4d51-903e-fe845f78ff06: 11 image(s) failed
-[2026-02-10 16:22:38] WARN: Partial success for 5d20e608-8d9d-4a5a-b27d-de3ed61b4c59: 8 image(s) failed
-[2026-02-10 16:23:08] WARN: Partial success for 936a5e8a-1095-4241-a498-e825c2bc78b4: 11 image(s) failed
-[2026-02-10 16:23:39] WARN: Partial success for 1124b1c3-36c6-4103-8418-85290b108966: 9 image(s) failed
-[2026-02-10 16:24:24] WARN: Partial success for 5d0361a9-d42d-4366-8b92-26054a549e99: 15 image(s) failed
-[2026-02-10 16:24:54] WARN: Partial success for b294aec4-cc80-45fb-a6de-9fc99bdf74e4: 8 image(s) failed
-[2026-02-10 16:25:24] WARN: Partial success for 4d47df31-a872-4b6b-8605-a47372b766df: 8 image(s) failed
-[2026-02-10 16:26:09] WARN: Partial success for e22be043-2a37-4fe3-b40d-e3101aabee65: 12 image(s) failed
-[2026-02-10 16:26:54] WARN: Partial success for eae651fd-43b9-482b-81e3-56ecec7c5b41: 16 image(s) failed
-[2026-02-10 16:28:08] WARN: Partial success for 46593398-6911-4a90-b4ae-ba998870d206: 34 image(s) failed
-[2026-02-10 16:28:39] WARN: Partial success for 57765411-ebe3-479e-8b1a-ee46f0e7229e: 9 image(s) failed
-[2026-02-10 16:29:09] WARN: Partial success for 049e934a-a45e-4cdb-8b54-9da3589ade5c: 10 image(s) failed
-[2026-02-10 16:30:09] WARN: Partial success for f784a696-917c-4911-9e64-a2fa250b0dfb: 29 image(s) failed
-[2026-02-10 16:30:53] WARN: Partial success for 74326246-863a-4dc6-8522-0811f43431ec: 16 image(s) failed
-[2026-02-10 16:31:23] WARN: Partial success for 9aef9560-dcb8-4a70-9f19-e3f65521cf20: 11 image(s) failed
-[2026-02-10 16:32:09] WARN: Partial success for dd534cba-3572-4c14-a820-0139efdcf5d4: 17 image(s) failed
-[2026-02-10 16:32:40] WARN: Partial success for 75c4fefc-980c-4dde-9c50-3eae55943ea2: 10 image(s) failed
-[2026-02-10 16:33:10] WARN: Partial success for 05053502-9cdc-4ef9-b174-111981e7eab8: 10 image(s) failed
-[2026-02-10 16:33:55] WARN: Partial success for 7c84d1c4-da0a-47ea-9c61-e6397d2b227c: 17 image(s) failed
-[2026-02-10 16:35:24] WARN: Partial success for 1af3bbce-4b2d-45d9-8637-703da75d8626: 50 image(s) failed
-[2026-02-10 16:36:09] WARN: Partial success for 7cca00b8-1b65-445e-8855-12e964c881d3: 20 image(s) failed
-[2026-02-10 16:36:55] WARN: Partial success for 07737c0c-8a33-4e78-a0cc-557827f09524: 15 image(s) failed
-[2026-02-10 16:37:25] WARN: Partial success for d20f23b1-19ae-49fc-bc4e-1201eb3bd349: 8 image(s) failed
-[2026-02-10 16:37:55] WARN: Partial success for a14de700-7f72-4415-8dc1-97b92f48824d: 9 image(s) failed
-[2026-02-10 16:43:42] WARN: Partial success for cf142baa-e58c-46ce-88bf-9a988af01aef: 78 image(s) failed
-[2026-02-10 16:44:27] WARN: Partial success for 0e0fc151-3e94-496a-9898-1d6ff555844c: 18 image(s) failed
-[2026-02-10 16:47:24] WARN: Partial success for 2adde8bf-0599-4a4c-ae61-356e5f072f01: 28 image(s) failed
-[2026-02-10 16:48:09] WARN: Partial success for a8a7487f-d721-4b06-b293-cac4204428c9: 15 image(s) failed
-[2026-02-10 16:49:10] WARN: Partial success for 35c87b42-b429-4d21-b542-109d90613d56: 23 image(s) failed
-[2026-02-10 16:49:40] WARN: Partial success for c5efe2d1-7590-4e94-a011-a982cbc39d70: 8 image(s) failed
-[2026-02-10 16:50:26] WARN: Partial success for 29b27922-6da8-48ea-abe5-7cfa5516f411: 14 image(s) failed
-[2026-02-10 16:51:11] WARN: Partial success for cdee561d-c7a3-48b6-9857-4a23e6a62276: 16 image(s) failed
-[2026-02-10 16:51:41] WARN: Partial success for c7e59ae5-e037-44d5-9457-296baec9aac8: 8 image(s) failed
-[2026-02-10 16:52:12] WARN: Partial success for f48997da-92fa-4634-8fcf-a9b9b3ae7570: 3 image(s) failed
-[2026-02-10 16:52:42] WARN: Partial success for 2d6d1023-c54e-42f3-be3d-b4835a57727c: 11 image(s) failed
-[2026-02-10 16:53:14] WARN: Partial success for 94834641-9613-4ddc-bec8-b8ecb52c8176: 9 image(s) failed
-[2026-02-10 16:53:45] WARN: Partial success for f3b214f0-b7f4-4f93-af39-107bce160b04: 8 image(s) failed
-[2026-02-10 16:54:30] WARN: Partial success for d0c74475-c705-4bac-8889-0d6938121282: 13 image(s) failed
-[2026-02-10 16:55:15] WARN: Partial success for fab61a9d-79cb-438b-8263-4980231f71bc: 16 image(s) failed
-[2026-02-10 16:56:00] WARN: Partial success for e2a5cebd-7b24-49a8-af94-7dd972d40444: 13 image(s) failed
-[2026-02-10 16:56:16] WARN: Partial success for 521d52bf-8077-4492-881d-0fe1357f96c8: 1 image(s) failed
-[2026-02-10 16:56:46] WARN: Partial success for 305a92cc-ba0b-491a-b8fa-82b35fa23d14: 10 image(s) failed
-[2026-02-10 16:57:31] WARN: Partial success for 805f9d5c-aec6-4362-8839-f80cccf92758: 14 image(s) failed
-[2026-02-10 16:58:01] WARN: Partial success for fedea7f7-78a2-45b1-ae62-683978a53e27: 10 image(s) failed
-[2026-02-10 16:58:45] WARN: Partial success for 7f930cc0-dfb8-47e9-866a-8eb1fbfd2ed4: 12 image(s) failed
-[2026-02-10 16:59:16] WARN: Partial success for b8d7c46b-f9ed-4aae-8e48-96c83056b980: 8 image(s) failed
-[2026-02-10 17:00:01] WARN: Partial success for b1c0cc52-43a9-498a-8174-01773c6351f2: 12 image(s) failed
-[2026-02-10 17:00:31] WARN: Partial success for 939df6b9-5bce-4c7d-acca-9a008630b966: 2 image(s) failed
-[2026-02-10 17:01:16] WARN: Partial success for 567a72f8-1979-4c4f-b5d9-f63913deda2a: 19 image(s) failed
-[2026-02-10 17:01:45] WARN: Partial success for adad3f27-d858-45c1-b2f9-4865bb4d9d70: 6 image(s) failed
-[2026-02-10 17:02:16] WARN: Partial success for 25f55f1e-7bf4-48ba-aefe-42497cb72844: 11 image(s) failed
-[2026-02-10 17:03:01] WARN: Partial success for 663bd9d1-a1c7-443b-818c-62ce1e48e1ac: 12 image(s) failed
-[2026-02-10 17:03:46] WARN: Partial success for d1177072-a057-41a4-a364-2ad0e7a6e58e: 17 image(s) failed
-[2026-02-10 17:04:16] WARN: Partial success for ec4291b5-855a-4525-bb0b-58aa35366176: 10 image(s) failed
-[2026-02-10 17:05:01] WARN: Partial success for 87d162f7-4b32-421f-9670-8546fb608a95: 12 image(s) failed
-[2026-02-10 17:05:33] WARN: Partial success for 4989d53d-4dc5-4598-a8e3-b963f9d08c91: 11 image(s) failed
-[2026-02-10 17:06:18] WARN: Partial success for afdb6d6b-2970-47c6-88c7-70d84d450ee0: 12 image(s) failed
-[2026-02-10 17:07:02] WARN: Partial success for ffd88a6d-8b70-4662-9856-f8cacb6e7dae: 18 image(s) failed
-[2026-02-10 17:07:02] SUMMARY: {
-  "Properties Imported": 98,
-  "Images Migrated Successfully": 98,
+[2026-02-11 05:44:50] INFO: Processing batch 1/28 (100 properties)
+[2026-02-11 05:45:04] INFO: Processing batch 2/28 (100 properties)
+[2026-02-11 05:45:19] INFO: Processing batch 3/28 (100 properties)
+[2026-02-11 05:45:32] INFO: Processing batch 4/28 (100 properties)
+[2026-02-11 05:45:45] INFO: Processing batch 5/28 (100 properties)
+[2026-02-11 05:45:58] INFO: Processing batch 6/28 (100 properties)
+[2026-02-11 05:46:12] INFO: Processing batch 7/28 (100 properties)
+[2026-02-11 05:46:26] INFO: Processing batch 8/28 (100 properties)
+[2026-02-11 05:46:39] INFO: Processing batch 9/28 (100 properties)
+[2026-02-11 05:46:53] INFO: Processing batch 10/28 (100 properties)
+[2026-02-11 05:47:06] INFO: Processing batch 11/28 (100 properties)
+[2026-02-11 05:47:19] INFO: Processing batch 12/28 (100 properties)
+[2026-02-11 05:47:33] INFO: Processing batch 13/28 (100 properties)
+[2026-02-11 05:47:47] INFO: Processing batch 14/28 (100 properties)
+[2026-02-11 05:48:00] INFO: Processing batch 15/28 (100 properties)
+[2026-02-11 05:48:14] INFO: Processing batch 16/28 (100 properties)
+[2026-02-11 05:48:27] INFO: Processing batch 17/28 (100 properties)
+[2026-02-11 05:48:41] INFO: Processing batch 18/28 (100 properties)
+[2026-02-11 05:48:55] INFO: Processing batch 19/28 (100 properties)
+[2026-02-11 05:49:08] INFO: Processing batch 20/28 (100 properties)
+[2026-02-11 05:49:22] INFO: Processing batch 21/28 (100 properties)
+[2026-02-11 05:49:36] INFO: Processing batch 22/28 (100 properties)
+[2026-02-11 05:49:49] INFO: Processing batch 23/28 (100 properties)
+[2026-02-11 05:50:03] INFO: Processing batch 24/28 (100 properties)
+[2026-02-11 05:50:16] INFO: Processing batch 25/28 (100 properties)
+[2026-02-11 05:50:30] INFO: Processing batch 26/28 (100 properties)
+[2026-02-11 05:50:43] INFO: Processing batch 27/28 (100 properties)
+[2026-02-11 05:51:00] INFO: Processing batch 28/28 (22 properties)
+[2026-02-11 05:51:03] INFO: ✓ Imported 2722 properties
+[2026-02-11 05:51:03] INFO: 
+Step 2: Migrating images for 2722 properties...
+[2026-02-11 05:51:03] INFO: This may take a while (downloading from Wix, uploading to Supabase)
+[2026-02-11 05:56:18] WARN: No images found for property 26d2bf18-9acd-4cd3-80f1-d78568ea2804
+[2026-02-11 06:07:58] WARN: Partial success for 1f8ccd57-a160-49d4-89d4-1c73e4f6fd63: 1 image(s) failed
+[2026-02-11 06:17:00] WARN: Partial success for 99faa000-4a51-4abe-99f6-8f49f2749e2a: 2 image(s) failed
+[2026-02-11 06:23:05] WARN: Partial success for bebcf848-b545-4618-890d-176f2804c95a: 1 image(s) failed
+[2026-02-11 06:36:38] WARN: No images found for property 96108c59-bf4c-486e-aed8-ae075578ce47
+[2026-02-11 06:37:48] WARN: Partial success for 2dbd462c-7397-46f1-a0e3-4396b0861ff0: 1 image(s) failed
+[2026-02-11 06:48:36] WARN: No images found for property 70697ce5-3398-4259-b5b9-e86c86bd791a
+[2026-02-11 06:51:19] WARN: Partial success for d694cf51-c5d4-4442-aa08-51f4163fbdee: 1 image(s) failed
+[2026-02-11 07:05:54] WARN: Partial success for 9825eb1b-1d8c-4bc9-9e0d-da61d3652a5d: 1 image(s) failed
+[2026-02-11 07:22:10] WARN: No images found for property 86debe3a-04d3-4e86-a96f-3871c881bf9b
+[2026-02-11 07:26:23] WARN: No images found for property 86cd718c-d990-4c85-a726-3785d1471fdf
+[2026-02-11 07:35:57] WARN: No images found for property 00b6887a-c445-4e78-b575-e05736b4eb72
+[2026-02-11 08:24:22] WARN: Partial success for d75f10f5-2e53-4267-bc66-906b0604b3d2: 1 image(s) failed
+[2026-02-11 08:35:04] WARN: Partial success for 5d0a3498-b742-424d-a0e9-5b3411e1df96: 1 image(s) failed
+[2026-02-11 08:38:48] SUMMARY: {
+  "Properties Imported": 2722,
+  "Images Migrated Successfully": 2716,
   "Image Migrations Failed": 0,
   "Property Import Failures": 0
 }
-[2026-02-10 17:07:02] SUCCESS: 
+[2026-02-11 08:38:48] SUCCESS: 
 ✅ Import complete! Check your admin panel to view properties.
-[2026-02-10 17:07:02] INFO: Run: npx tsx scripts/check-migration-status.ts
+[2026-02-11 08:38:48] INFO: Run: npx tsx scripts/check-migration-status.ts

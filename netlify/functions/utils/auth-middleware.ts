@@ -9,6 +9,11 @@ interface AuthenticatedEvent extends HandlerEvent {
   userRole: string
 }
 
+export interface OptionalAuthEvent extends HandlerEvent {
+  userId: string | null
+  userRole: string | null
+}
+
 export function requireAuth(handler: (event: AuthenticatedEvent) => Promise<any>): Handler {
   return async (event) => {
     try {
@@ -66,6 +71,57 @@ export function requireAuth(handler: (event: AuthenticatedEvent) => Promise<any>
         statusCode: 500,
         body: JSON.stringify({ message: 'Internal server error' }),
       }
+    }
+  }
+}
+
+export function optionalAuth(handler: (event: OptionalAuthEvent) => Promise<any>): Handler {
+  return async (event) => {
+    try {
+      const authHeader = event.headers.authorization
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const optionalEvent = {
+          ...event,
+          userId: null,
+          userRole: null,
+        } as OptionalAuthEvent
+        return await handler(optionalEvent)
+      }
+
+      const token = authHeader.replace('Bearer ', '')
+      const supabase = createClient(supabaseUrl, supabaseAnonKey)
+      const { data: { user }, error } = await supabase.auth.getUser(token)
+
+      if (error || !user) {
+        const optionalEvent = {
+          ...event,
+          userId: null,
+          userRole: null,
+        } as OptionalAuthEvent
+        return await handler(optionalEvent)
+      }
+
+      const { data: profile } = await supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      const optionalEvent = {
+        ...event,
+        userId: user.id,
+        userRole: profile?.role || null,
+      } as OptionalAuthEvent
+      return await handler(optionalEvent)
+    } catch (error: any) {
+      console.error('Optional auth middleware error:', error)
+      const optionalEvent = {
+        ...event,
+        userId: null,
+        userRole: null,
+      } as OptionalAuthEvent
+      return await handler(optionalEvent)
     }
   }
 }

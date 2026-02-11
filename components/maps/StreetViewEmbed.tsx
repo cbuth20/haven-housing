@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, memo } from 'react'
 import { loadGoogleMaps } from '@/lib/google-maps'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
@@ -11,49 +11,41 @@ interface StreetViewEmbedProps {
   className?: string
 }
 
-export function StreetViewEmbed({
+export const StreetViewEmbed = memo(function StreetViewEmbed({
   latitude,
   longitude,
   address,
   className = 'w-full h-96',
 }: StreetViewEmbedProps) {
   const streetViewRef = useRef<HTMLDivElement>(null)
+  const panoramaRef = useRef<google.maps.StreetViewPanorama | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAvailable, setIsAvailable] = useState(true)
 
   useEffect(() => {
+    let cancelled = false
+
     const initStreetView = async () => {
       try {
-        setIsLoading(true)
-        setError(null)
-
         await loadGoogleMaps()
 
-        if (!streetViewRef.current) return
+        if (cancelled || !streetViewRef.current) return
 
         const position = { lat: latitude, lng: longitude }
-
-        // Check if Street View is available at this location
         const streetViewService = new google.maps.StreetViewService()
-        const STREETVIEW_MAX_DISTANCE = 100 // meters
 
         streetViewService.getPanorama(
-          {
-            location: position,
-            radius: STREETVIEW_MAX_DISTANCE,
-          },
+          { location: position, radius: 100 },
           (data, status) => {
+            if (cancelled || !streetViewRef.current) return
+
             if (status === google.maps.StreetViewStatus.OK && data) {
-              // Street View is available
-              const panorama = new google.maps.StreetViewPanorama(
-                streetViewRef.current!,
+              panoramaRef.current = new google.maps.StreetViewPanorama(
+                streetViewRef.current,
                 {
                   position: data.location?.latLng || position,
-                  pov: {
-                    heading: 0,
-                    pitch: 0,
-                  },
+                  pov: { heading: 0, pitch: 0 },
                   zoom: 1,
                   addressControl: true,
                   linksControl: true,
@@ -64,20 +56,28 @@ export function StreetViewEmbed({
               )
               setIsAvailable(true)
             } else {
-              // Street View not available
               setIsAvailable(false)
             }
             setIsLoading(false)
           }
         )
       } catch (err: any) {
-        console.error('Error loading Street View:', err)
-        setError(err.message || 'Failed to load Street View')
-        setIsLoading(false)
+        if (!cancelled) {
+          setError(err.message || 'Failed to load Street View')
+          setIsLoading(false)
+        }
       }
     }
 
     initStreetView()
+
+    return () => {
+      cancelled = true
+      if (panoramaRef.current) {
+        panoramaRef.current.setVisible(false)
+        panoramaRef.current = null
+      }
+    }
   }, [latitude, longitude])
 
   if (error) {
@@ -91,15 +91,7 @@ export function StreetViewEmbed({
     )
   }
 
-  if (isLoading) {
-    return (
-      <div className={`${className} bg-gray-100 rounded-lg flex items-center justify-center`}>
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
-  if (!isAvailable) {
+  if (!isLoading && !isAvailable) {
     return (
       <div className={`${className} bg-gray-100 rounded-lg flex items-center justify-center`}>
         <div className="text-center p-8">
@@ -113,5 +105,17 @@ export function StreetViewEmbed({
     )
   }
 
-  return <div ref={streetViewRef} className={`${className} rounded-lg overflow-hidden`} />
-}
+  return (
+    <div className={`relative ${className}`}>
+      {isLoading && (
+        <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
+          <LoadingSpinner size="lg" />
+        </div>
+      )}
+      <div
+        ref={streetViewRef}
+        className={`w-full h-full rounded-lg overflow-hidden ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+      />
+    </div>
+  )
+})

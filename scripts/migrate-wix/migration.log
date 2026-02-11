@@ -1,17 +1,14 @@
-[2026-02-10 15:30:15] PHASE: Phase 2: Test Migration (50 Properties)
-[2026-02-10 15:30:15] INFO: Loaded 50 rows for test migration
-[2026-02-10 15:30:15] ERROR: Transform failed for row 3: Cannot read properties of undefined (reading 'map')
-[2026-02-10 15:30:15] ERROR: Transform failed for row 27: Cannot read properties of undefined (reading 'map')
-[2026-02-10 15:30:15] INFO: Valid properties: 48
-[2026-02-10 15:30:15] INFO: Invalid properties: 2
-[2026-02-10 15:30:15] INFO: Processing batch 1/1 (48 properties)
-[2026-02-10 15:30:22] SUMMARY: {
-  "Total Rows": 50,
-  "Valid Properties": 48,
-  "Successfully Imported": 48,
-  "Failed": 0,
-  "Validation Errors": 2
+[2026-02-11 05:43:36] PHASE: Phase 6: Migration Verification
+[2026-02-11 05:43:37] SUMMARY: {
+  "Total Properties": 0,
+  "With Wix ID": 0,
+  "With Cover Photo": 0,
+  "With Gallery": 0,
+  "Published": 0,
+  "Checkpoint Exists": "Yes",
+  "Last Phase": "parsing",
+  "Successful Imports": 48,
+  "Failed Imports": 0
 }
-[2026-02-10 15:30:22] SUCCESS: Test migration complete!
-[2026-02-10 15:30:22] INFO: Review the results, then run image migration with: npm run migrate:images -- --test
-[2026-02-10 15:30:22] SUCCESS: Migration completed in 6s
+[2026-02-11 05:43:37] INFO: Verification report saved to verification-report.json
+[2026-02-11 05:43:37] SUCCESS: Migration completed in 1s

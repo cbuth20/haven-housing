@@ -20,9 +20,9 @@ import {
 } from '@heroicons/react/24/outline'
 
 interface PropertyPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 async function getProperty(id: string): Promise<Property | null> {
@@ -53,7 +53,8 @@ async function getSimilarProperties(property: Property): Promise<Property[]> {
 }
 
 export default async function PropertyDetailPage({ params }: PropertyPageProps) {
-  const property = await getProperty(params.id)
+  const { id } = await params
+  const property = await getProperty(id)
 
   if (!property) {
     notFound()

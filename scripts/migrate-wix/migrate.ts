@@ -60,7 +60,7 @@ class MigrationOrchestrator {
           await this.runTestMigration(csvPath!, limit || MIGRATION_CONFIG.testBatchSize)
           break
         case 'images':
-          await this.runImageMigration(limit)
+          await this.runImageMigration(limit, csvPath)
           break
         case 'full':
           await this.runFullMigration(csvPath!)
@@ -223,7 +223,7 @@ class MigrationOrchestrator {
     this.logger.info('Now migrating images...')
 
     // Automatically run image migration
-    await this.runImageMigration()
+    await this.runImageMigration(undefined, csvPath)
 
     this.logger.success('Full migration complete!')
   }
@@ -290,7 +290,7 @@ class MigrationOrchestrator {
     })
   }
 
-  private async runImageMigration(limit?: number) {
+  private async runImageMigration(limit?: number, csvPath?: string) {
     this.logger.phase('Phase 4: Image Migration')
 
     // Get properties without images
@@ -311,17 +311,93 @@ class MigrationOrchestrator {
 
     this.logger.info(`Found ${properties.length} properties needing images`)
 
-    // We need to reload the CSV to get Wix image URLs
-    // For now, log a message that manual image migration is needed
-    this.logger.warn('Image migration requires CSV reload - implement this next')
-    this.logger.info('This feature will be completed in next iteration')
+    // Resolve CSV path - check arg, then look for common default
+    const resolvedCsvPath = csvPath || resolve(process.cwd(), 'All+Properties.csv')
 
-    // TODO: Implement CSV reload and image migration
-    // For each property:
-    // 1. Find matching row in CSV by wix_id
-    // 2. Extract Wix image URLs
-    // 3. Download and upload to Supabase
-    // 4. Update property record
+    // Reload CSV to get Wix image URLs
+    let rows: WixCSVRow[]
+    try {
+      rows = await this.csvParser.parse(resolvedCsvPath)
+      this.logger.info(`Loaded ${rows.length} CSV rows for image URL lookup`)
+    } catch (err: any) {
+      this.logger.error(`Failed to load CSV for image migration: ${err.message}`)
+      this.logger.info('Provide CSV path: npm run migrate -- --mode images /path/to/file.csv')
+      return
+    }
+
+    // Build lookup map: wix_id -> CSV row
+    const rowMap = new Map<string, WixCSVRow>()
+    for (const row of rows) {
+      if (row.ID) {
+        rowMap.set(row.ID, row)
+      }
+    }
+
+    const progressBar = this.logger.createProgressBar(properties.length, 'Migrating Images')
+
+    let successCount = 0
+    let failCount = 0
+    let skippedCount = 0
+
+    for (let i = 0; i < properties.length; i++) {
+      const { id: propertyId, wix_id: wixId } = properties[i]
+      const originalRow = rowMap.get(wixId)
+
+      if (!originalRow) {
+        this.logger.warn(`No CSV row found for wix_id: ${wixId}`)
+        skippedCount++
+        progressBar.update(i + 1)
+        continue
+      }
+
+      try {
+        const coverPhotoWixUrl = this.transformer.extractCoverPhotoWixUrl(originalRow)
+        const galleryWixUrls = this.transformer.extractMediaGalleryWixUrls(originalRow)
+
+        if (!coverPhotoWixUrl && galleryWixUrls.length === 0) {
+          skippedCount++
+          progressBar.update(i + 1)
+          continue
+        }
+
+        const { coverPhotoUrl, galleryUrls, errors } = await this.imageConverter.migrateImagesForProperty(
+          propertyId,
+          coverPhotoWixUrl,
+          galleryWixUrls
+        )
+
+        await this.importer.updatePropertyImages(
+          propertyId,
+          coverPhotoUrl,
+          galleryUrls.length > 0 ? galleryUrls : null
+        )
+
+        successCount++
+
+        if (errors.length > 0) {
+          this.logger.warn(`Partial success for ${propertyId}: ${errors.join(', ')}`)
+        }
+      } catch (err: any) {
+        failCount++
+        this.logger.error(`Failed images for ${propertyId}: ${err.message}`)
+      }
+
+      progressBar.update(i + 1)
+
+      // Rate limiting: pause every 5 properties
+      if ((i + 1) % 5 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+
+    this.logger.stopProgressBar()
+
+    this.logger.summary({
+      'Properties Needing Images': properties.length,
+      'Images Migrated Successfully': successCount,
+      'Image Migrations Failed': failCount,
+      'Skipped (no images in CSV)': skippedCount,
+    })
   }
 
   private async runResume(csvPath: string) {
@@ -447,6 +523,7 @@ async function main() {
     console.error('  npm run migrate:validate -- /path/to/file.csv')
     console.error('  npm run migrate:test -- /path/to/file.csv')
     console.error('  npm run migrate:full -- /path/to/file.csv')
+    console.error('  npm run migrate -- --mode images /path/to/file.csv')
     process.exit(1)
   }
 

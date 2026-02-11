@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Property } from '@/types/property'
 import { DataTable, Column } from '@/components/common/DataTable'
@@ -12,13 +12,11 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { Select } from '@/components/common/Select'
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { useProperties } from '@/hooks/useProperties'
+import { usePropertySearch } from '@/hooks/usePropertySearch'
 import Image from 'next/image'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
 
 export default function PropertiesPage() {
-  const [properties, setProperties] = useState<Property[]>([])
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
@@ -29,78 +27,67 @@ export default function PropertiesPage() {
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
+  const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, archived: 0 })
+  const [isStatsLoading, setIsStatsLoading] = useState(true)
+
   const { deleteProperty, isLoading: isDeleting } = useProperties()
+  const { properties, isLoading, searchProperties } = usePropertySearch({ includeAuth: true })
 
-  useEffect(() => {
-    fetchProperties()
-  }, [])
+  // Keep a stable ref to searchProperties so effects/callbacks never go stale
+  const searchRef = useRef(searchProperties)
+  searchRef.current = searchProperties
 
-  useEffect(() => {
-    filterProperties()
-  }, [properties, searchQuery, statusFilter, sortKey, sortDirection])
-
-  const fetchProperties = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      setIsLoading(true)
+      setIsStatsLoading(true)
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .select('id, status')
 
       if (error) throw error
 
-      setProperties(data || [])
+      const all = data || []
+      setStats({
+        total: all.length,
+        published: all.filter((p) => p.status === 'published').length,
+        draft: all.filter((p) => p.status === 'draft').length,
+        archived: all.filter((p) => p.status === 'archived').length,
+      })
     } catch (error) {
-      console.error('Error fetching properties:', error)
+      console.error('Error fetching stats:', error)
     } finally {
-      setIsLoading(false)
+      setIsStatsLoading(false)
     }
-  }
+  }, [])
 
-  const filterProperties = () => {
-    let filtered = [...properties]
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (p) =>
-          p.title?.toLowerCase().includes(query) ||
-          p.city?.toLowerCase().includes(query) ||
-          p.state?.toLowerCase().includes(query) ||
-          p.street_address?.toLowerCase().includes(query)
-      )
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter((p) => p.status === statusFilter)
-    }
-
-    // Sorting
-    filtered.sort((a, b) => {
-      let aVal = (a as any)[sortKey]
-      let bVal = (b as any)[sortKey]
-
-      // Handle null/undefined values
-      if (aVal == null) return 1
-      if (bVal == null) return -1
-
-      // String comparison
-      if (typeof aVal === 'string') {
-        aVal = aVal.toLowerCase()
-        bVal = bVal.toLowerCase()
-      }
-
-      if (sortDirection === 'asc') {
-        return aVal > bVal ? 1 : -1
-      } else {
-        return aVal < bVal ? 1 : -1
-      }
+  const doSearch = useCallback(() => {
+    searchRef.current({
+      search: searchQuery || undefined,
+      status: statusFilter === 'all' ? 'all' : statusFilter as any,
+      sortBy: sortKey,
+      sortDirection,
+      limit: 200,
     })
+  }, [searchQuery, statusFilter, sortKey, sortDirection])
 
-    setFilteredProperties(filtered)
-  }
+  // Initial load
+  useEffect(() => {
+    fetchStats()
+    doSearch()
+  }, [fetchStats, doSearch])
+
+  // Debounced search on filter changes (skip initial render)
+  const isInitialMount = useRef(true)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    const timer = setTimeout(() => {
+      doSearch()
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [doSearch])
 
   const handleSort = (key: string) => {
     if (sortKey === key) {
@@ -138,7 +125,8 @@ export default function PropertiesPage() {
 
     try {
       await deleteProperty(propertyToDelete.id)
-      await fetchProperties()
+      doSearch()
+      fetchStats()
       setIsDeleteModalOpen(false)
       setPropertyToDelete(null)
     } catch (error) {
@@ -149,7 +137,8 @@ export default function PropertiesPage() {
   const handleFormSuccess = async () => {
     setIsFormOpen(false)
     setSelectedProperty(null)
-    await fetchProperties()
+    doSearch()
+    fetchStats()
   }
 
   const statusOptions = [
@@ -158,13 +147,6 @@ export default function PropertiesPage() {
     { value: 'published', label: 'Published' },
     { value: 'archived', label: 'Archived' },
   ]
-
-  const stats = {
-    total: properties.length,
-    published: properties.filter((p) => p.status === 'published').length,
-    draft: properties.filter((p) => p.status === 'draft').length,
-    archived: properties.filter((p) => p.status === 'archived').length,
-  }
 
   const columns: Column<Property>[] = useMemo(
     () => [
@@ -383,14 +365,14 @@ export default function PropertiesPage() {
       </div>
 
       {/* Properties Table */}
-      {isLoading ? (
+      {isLoading && properties.length === 0 ? (
         <div className="flex items-center justify-center py-12 bg-white rounded-lg shadow">
           <LoadingSpinner size="lg" />
         </div>
       ) : (
         <DataTable
           columns={columns}
-          data={filteredProperties}
+          data={properties}
           onRowClick={handleRowClick}
           sortKey={sortKey}
           sortDirection={sortDirection}

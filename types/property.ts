@@ -78,6 +78,27 @@ export interface PropertySearchResult extends Property {
   distance: number
 }
 
+export interface UnifiedSearchFilters {
+  lat?: number
+  lon?: number
+  radius?: number
+  minBeds?: number
+  minBaths?: number
+  maxRent?: number
+  allowsPets?: boolean
+  search?: string
+  status?: PropertyStatus | 'all'
+  sortBy?: string
+  sortDirection?: 'asc' | 'desc'
+  limit?: number
+  offset?: number
+}
+
+export interface PropertySearchResponse {
+  properties: Property[]
+  count: number
+}
+
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected'
 
 export interface PropertySubmission {
