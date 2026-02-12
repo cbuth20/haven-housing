@@ -41,7 +41,7 @@ export function DataTable<T extends { id: string }>({
   const [currentPage, setCurrentPage] = useState(0)
 
   // Reset to page 0 when data changes
-  const dataKey = data.length + (data[0] as any)?.id
+  const dataKey = `${data.length}:${(data[0] as any)?.id ?? ''}`
   const [prevDataKey, setPrevDataKey] = useState(dataKey)
   if (dataKey !== prevDataKey) {
     setPrevDataKey(dataKey)

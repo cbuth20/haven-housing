@@ -118,14 +118,24 @@ export class FieldTransformer {
       if (parsed.subdivisions?.[0]?.code) return parsed.subdivisions[0].code
       if (parsed.subdivision) return parsed.subdivision
       if (parsed.state) return parsed.state
+      // Fallback: parse from formatted string "City, ST 12345, USA"
+      if (parsed.formatted) {
+        const stateMatch = parsed.formatted.match(/,\s*([A-Z]{2})[\s,]/)
+        if (stateMatch) return stateMatch[1]
+      }
     }
     return String(row.State || '')
   }
 
   private extractZipCode(row: WixCSVRow): string {
     const parsed = this.getLocationData(row)
-    if (parsed?.postalCode) {
-      return parsed.postalCode.split('-')[0]
+    if (parsed) {
+      if (parsed.postalCode) return parsed.postalCode.split('-')[0]
+      // Fallback: extract zip from formatted string "City, ST 12345, USA"
+      if (parsed.formatted) {
+        const zipMatch = parsed.formatted.match(/\b(\d{5})(?:-\d{4})?\b/)
+        if (zipMatch) return zipMatch[1]
+      }
     }
     return String(row['Zip Code'] || '')
   }

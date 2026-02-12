@@ -66,10 +66,10 @@ export default function GovernmentPage() {
               </div>
 
               <div className="mt-6">
-                <Button variant="primary" className="inline-flex items-center gap-2">
+                <a href="/capabilities-statement.pdf" download className="inline-flex items-center gap-2 px-4 py-2 bg-navy hover:bg-navy-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-navy">
                   <DocumentArrowDownIcon className="h-5 w-5" />
                   Download Capabilities Statement
-                </Button>
+                </a>
               </div>
             </div>
 
