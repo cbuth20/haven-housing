@@ -8,7 +8,7 @@ import { Button } from '@/components/common/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
 const schema = z.object({
-  name: z.string().min(2, 'Name is required'),
+  fullName: z.string().min(2, 'Name is required'),
   email: z.string().email('Invalid email'),
   phone: z.string().optional(),
   subject: z.string().min(2, 'Subject is required'),
@@ -78,9 +78,9 @@ export function ContactForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-        <input {...register('name')} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy" />
-        {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name.message}</p>}
+        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+        <input {...register('fullName')} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy" />
+        {errors.fullName && <p className="text-red-600 text-sm mt-1">{errors.fullName.message}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

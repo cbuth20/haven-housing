@@ -1,7 +1,7 @@
 import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { requireAdmin } from './utils/auth-middleware'
-import { salesforceClient } from './utils/salesforce-client'
+import { createSalesforceClient } from './utils/salesforce-client'
 
 const handler: Handler = requireAdmin(async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -22,15 +22,15 @@ const handler: Handler = requireAdmin(async (event) => {
       }
     }
 
-    // This is a placeholder implementation
-    // When Salesforce credentials are available, this will:
-    // 1. Fetch the record from Supabase
-    // 2. Authenticate with Salesforce
-    // 3. Create/update the record in Salesforce
-    // 4. Update the sync status in Supabase
+    const sfClient = createSalesforceClient()
+    if (!sfClient) {
+      return {
+        statusCode: 503,
+        body: JSON.stringify({ message: 'Salesforce credentials not configured' }),
+      }
+    }
 
     if (type === 'form') {
-      // Get form submission
       const { data: submission, error } = await supabaseAdmin
         .from('form_submissions')
         .select('*')
@@ -44,60 +44,30 @@ const handler: Handler = requireAdmin(async (event) => {
         }
       }
 
-      // TODO: Sync to Salesforce as Lead
-      // const salesforceId = await salesforceClient.createLead(submission.form_data)
+      const formData = submission.form_data as Record<string, any>
 
-      // Update sync status
+      const salesforceId = await sfClient.createLead({
+        fullName: formData.fullName || formData.name || 'Unknown',
+        email: formData.email || '',
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+        source: `Website - ${submission.form_type}`,
+      })
+
       await supabaseAdmin
         .from('form_submissions')
         .update({
-          salesforce_synced: false, // Will be true when implemented
+          salesforce_id: salesforceId,
+          salesforce_synced: true,
           last_sync_attempt_at: new Date().toISOString(),
-          sync_error: 'Salesforce integration not yet configured',
+          sync_error: null,
         })
         .eq('id', id)
 
       return {
         statusCode: 200,
-        body: JSON.stringify({
-          message: 'Sync attempted (Salesforce not yet configured)',
-          id,
-        }),
-      }
-    }
-
-    if (type === 'property') {
-      // Get property
-      const { data: property, error } = await supabaseAdmin
-        .from('properties')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error || !property) {
-        return {
-          statusCode: 404,
-          body: JSON.stringify({ message: 'Property not found' }),
-        }
-      }
-
-      // TODO: Sync to Salesforce
-      // const salesforceId = await salesforceClient.createProperty(property)
-
-      // Update sync status
-      await supabaseAdmin
-        .from('properties')
-        .update({
-          last_synced_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          message: 'Sync attempted (Salesforce not yet configured)',
-          id,
-        }),
+        body: JSON.stringify({ message: 'Synced to Salesforce', salesforceId, id }),
       }
     }
 
@@ -109,7 +79,7 @@ const handler: Handler = requireAdmin(async (event) => {
     console.error('Error syncing to Salesforce:', error)
     return {
       statusCode: 500,
-      body: JSON.stringify({ message: 'Internal server error' }),
+      body: JSON.stringify({ message: error.message || 'Internal server error' }),
     }
   }
 })
