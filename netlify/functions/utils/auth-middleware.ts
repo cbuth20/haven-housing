@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 interface AuthenticatedEvent extends HandlerEvent {
   userId: string
@@ -42,8 +43,9 @@ export function requireAuth(handler: (event: AuthenticatedEvent) => Promise<any>
         }
       }
 
-      // Get user profile to check role
-      const { data: profile, error: profileError } = await supabase
+      // Get user profile to check role (using service role to bypass RLS)
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
@@ -102,7 +104,9 @@ export function optionalAuth(handler: (event: OptionalAuthEvent) => Promise<any>
         return await handler(optionalEvent)
       }
 
-      const { data: profile } = await supabase
+      // Get user profile using service role to bypass RLS
+      const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+      const { data: profile } = await supabaseAdmin
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)

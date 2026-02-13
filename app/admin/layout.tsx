@@ -13,6 +13,7 @@ import {
   UsersIcon,
   Cog6ToothIcon,
   ChartBarIcon,
+  UserCircleIcon,
 } from '@heroicons/react/24/outline'
 
 export default function AdminLayout({
@@ -74,6 +75,12 @@ export default function AdminLayout({
       href: '/admin/users',
       icon: UsersIcon,
       current: pathname === '/admin/users',
+    },
+    {
+      name: 'Profile',
+      href: '/admin/profile',
+      icon: UserCircleIcon,
+      current: pathname === '/admin/profile',
     },
   ]
 

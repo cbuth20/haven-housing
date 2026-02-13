@@ -92,3 +92,17 @@ export const ContactFormSchema = z.object({
   subject: z.string().min(1, 'Subject is required'),
   message: z.string().min(1, 'Message is required'),
 })
+
+// User creation schema
+export const CreateUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  full_name: z.string().min(1, 'Full name is required'),
+  role: z.enum(['admin', 'client']),
+  temporary_password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Must contain uppercase letter')
+    .regex(/[a-z]/, 'Must contain lowercase letter')
+    .regex(/[0-9]/, 'Must contain number')
+})
+
+export type CreateUserInput = z.infer<typeof CreateUserSchema>
