@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/common/Button'
-import { Dropdown, DropdownItem, DropdownLink } from '@/components/common/Dropdown'
+import { Dropdown, DropdownItem, DropdownLink, HoverDropdownLink } from '@/components/common/Dropdown'
 import { useRouter } from 'next/navigation'
 import {
   UserCircleIcon,
@@ -61,24 +61,25 @@ export function Header() {
               About
             </Link>
 
-            {/* Services Dropdown */}
+            {/* Services Dropdown - hover to reveal */}
             <Dropdown
+              hover
               trigger={
-                <button className="flex items-center gap-1 text-gray-700 hover:text-navy font-medium transition-colors">
+                <Link href="/services" className="flex items-center gap-1 text-gray-700 hover:text-navy font-medium transition-colors">
                   Services
                   <ChevronDownIcon className="h-4 w-4" />
-                </button>
+                </Link>
               }
             >
-              <DropdownLink href="/services/insurance" icon={ShieldCheckIcon}>
+              <HoverDropdownLink href="/services/insurance" icon={ShieldCheckIcon}>
                 Insurance
-              </DropdownLink>
-              <DropdownLink href="/services/corporate" icon={BriefcaseIcon}>
+              </HoverDropdownLink>
+              <HoverDropdownLink href="/services/corporate" icon={BriefcaseIcon}>
                 Corporate
-              </DropdownLink>
-              <DropdownLink href="/services/government" icon={BuildingLibraryIcon}>
+              </HoverDropdownLink>
+              <HoverDropdownLink href="/services/government" icon={BuildingLibraryIcon}>
                 Government
-              </DropdownLink>
+              </HoverDropdownLink>
             </Dropdown>
 
             <Link

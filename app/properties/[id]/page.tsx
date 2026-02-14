@@ -4,7 +4,6 @@ import { createServerClient } from '@/lib/supabase'
 import { Property } from '@/types/property'
 import { PropertyGallery } from '@/components/property/PropertyGallery'
 import { PropertyAmenities } from '@/components/property/PropertyAmenities'
-import { StreetViewEmbed } from '@/components/maps/StreetViewEmbed'
 import { MapView } from '@/components/maps/MapView'
 import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
@@ -171,22 +170,9 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
               </div>
             </div>
 
-            {/* Map & Street View */}
+            {/* Map */}
             {hasCoordinates && (
               <>
-                {/* Street View */}
-                <div className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-heading font-bold text-navy mb-4">
-                    Street View
-                  </h2>
-                  <StreetViewEmbed
-                    latitude={Number(property.latitude)}
-                    longitude={Number(property.longitude)}
-                    address={fullAddress}
-                    className="w-full h-96"
-                  />
-                </div>
-
                 {/* Map */}
                 <div className="bg-white rounded-lg shadow-md p-6">
                   <h2 className="text-xl font-heading font-bold text-navy mb-4">

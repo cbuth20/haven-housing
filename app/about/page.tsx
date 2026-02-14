@@ -247,11 +247,11 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto mb-14">
             {teamMembers.slice(0, 2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
                   <img
                     src={member.photo}
                     alt={member.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
                   />
                 </div>
                 <div className="p-8">
@@ -278,11 +278,11 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {teamMembers.slice(2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="aspect-[3/2] bg-gray-100 overflow-hidden">
+                <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
                   <img
                     src={member.photo}
                     alt={member.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-top"
                   />
                 </div>
                 <div className="p-6">
