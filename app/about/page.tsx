@@ -6,8 +6,8 @@ const teamMembers = [
     title: 'Co-Founder & Chief Executive Officer',
     bio: "Cory's background in supply chain, marketing, national account management, and real estate operations shapes Haven Housing's customer-first, speed-driven approach. With experience leading negotiations for top multifamily groups nationwide, Cory focuses on strategic growth, partner success, and ensuring HHS continues to raise the standard for temporary housing.",
     location: 'San Diego, CA',
-    interests: 'Surfing, tennis, skiing, and the outdoors',
-    initials: 'CY',
+    interests: 'Volleyball, surfing, tennis, skiing, and the outdoors',
+    photo: '/images/team/cory-yoviene.jpg',
     gradient: 'from-navy to-navy-700',
   },
   {
@@ -16,28 +16,28 @@ const teamMembers = [
     bio: "With a degree in Marine Engineering, an Unlimited Tonnage Engineer's License, and service in the U.S. Navy Reserve, Merrick brings precision, leadership, and operational discipline to the company. His background managing complex systems aboard commercial vessels informs the structure and reliability of Haven Housing's nationwide operations.",
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
-    initials: 'MK',
+    photo: '/images/team/merrick-kovatch.webp',
     gradient: 'from-navy-700 to-navy',
   },
   {
     name: 'Juliet Howie',
     title: 'VP of Sales, Corporate Housing',
     bio: 'Juliet brings a wealth of experience in the industry and a true passion for building meaningful partnerships. As a respected committee chair for GBTA EMEA, her insight, expertise, and vision play a key role in shaping the future of Haven\'s corporate housing initiative. Her deep understanding of the corporate travel and housing landscape, combined with her heart for service, perfectly aligns with our mission.',
-    initials: 'JH',
+    photo: '/images/team/juliet-howie.png',
     gradient: 'from-orange to-orange-600',
   },
   {
     name: 'Deserie Foley',
     title: 'Insurance Housing Specialist',
     bio: 'Deserie is an experienced professional in the insurance housing industry with over 10 years of dedicated service. One of her most significant achievements is running retreats focused on healing and spiritual growth, helping others on their journeys. Originally from Southern California, Deserie now resides in Florida, where she continues to pursue her passions and make a positive impact in her community.',
-    initials: 'DF',
+    photo: '/images/team/deserie-foley.jpg',
     gradient: 'from-orange-600 to-orange',
   },
   {
     name: 'Terri Royse',
     title: 'Housing Solutions Specialist',
     bio: 'With extensive experience in insurance, catastrophe, and corporate housing, Terri brings a wealth of knowledge and expertise to the team. Over the years, she has built a strong reputation for delivering innovative solutions across various industry sectors. A bibliophile and artist, Terri spends her free time altering old books and creating art journals.',
-    initials: 'TR',
+    photo: '/images/team/terri-royse.jpg',
     gradient: 'from-navy to-orange',
   },
 ]
@@ -61,7 +61,7 @@ const coreValues = [
   },
   {
     title: 'Scalable Support, Boutique Care',
-    description: 'Whether supporting 10 units or 1,000, our standard of care stays personal and thoughtful.',
+    description: 'Whether supporting 1 unit or 3,000, our standard of care stays personal and thoughtful.',
   },
   {
     title: 'Affordability with Dignity',
@@ -107,7 +107,7 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Our founders, Cory Yoviene and Merrick Kovatch, never set out to build another "housing company." Their journey started years earlier on the beaches of Fenwick Island, DE, where they worked side-by-side as lifeguards. What began as a summer job and a friendship evolved into multiple ventures, a shared entrepreneurial mindset, and ultimately a mission-driven company that now serves families, insurance carriers, government agencies, and corporate partners nationwide.
+                Our founders, Cory Yoviene and Merrick Kovatch, never set out to build another &ldquo;housing company.&rdquo; Their journey started years earlier on the beaches of Fenwick Island, DE, where they worked side-by-side as lifeguards. What began as a summer job and a friendship evolved into multiple ventures, a shared entrepreneurial mindset, and ultimately a mission-driven company that now serves families, insurance carriers, government agencies, and corporate partners worldwide.
               </p>
 
               <p>
@@ -115,7 +115,7 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Instead of walking away, they dug in. They analyzed every reservation, every stay, every guest who had ever walked through their doors. That's when they discovered something important: a significant portion of their revenue came from families displaced by disaster, employees on assignment, and people who needed temporary housing during difficult transitions.
+                Instead of walking away, they dug in. They analyzed every reservation, every stay, every guest who had ever walked through their doors. That&apos;s when they discovered something important: a significant portion of their bookings came from families displaced by disaster, employees on assignment, and people who needed temporary housing during difficult transitions.
               </p>
 
               <div className="bg-orange/5 border-l-4 border-orange rounded-r-lg p-6 my-8">
@@ -133,11 +133,11 @@ export default function AboutPage() {
               </p>
 
               <p>
-                Cory and Merrick credit their unconventional path as their greatest strength. Coming from outside the industry allowed them to look at temporary housing with a fresh, unbiased lens — seeing gaps and inefficiencies others had accepted as "normal," and designing solutions that put people, not process, at the center.
+                Cory and Merrick credit their unconventional path as their greatest strength. Coming from outside the industry allowed them to look at temporary housing with a fresh, unbiased lens — seeing gaps and inefficiencies others had accepted as &ldquo;normal,&rdquo; and designing solutions that put people, not process, at the center.
               </p>
 
               <p className="text-navy font-semibold text-xl">
-                Today, Haven Housing Solutions is one of the fastest-growing housing providers in the nation, built on a foundation of service, integrity, and "listen first, deliver always" leadership.
+                Today, Haven Housing Solutions is one of the fastest-growing housing providers in the nation, built on a foundation of service, integrity, and &ldquo;listen first, deliver always&rdquo; leadership.
               </p>
             </div>
           </div>
@@ -158,22 +158,33 @@ export default function AboutPage() {
               To make people feel safe, supported, and seen when life becomes overwhelming.
             </p>
 
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
-              {[
-                { text: 'Moving fast when time matters' },
-                { text: 'Delivering better value so partners can serve more families' },
-                { text: 'Providing flexible options that meet unique needs' },
-                { text: 'Removing friction from an already stressful transition' },
-                { text: 'Treating every stay like someone\'s home, not a transaction' },
-              ].map((item, i) => (
-                <div key={i} className="bg-white/10 backdrop-blur-sm rounded-lg p-5">
-                  <p className="text-white/90">{item.text}</p>
-                </div>
-              ))}
+            {/* 3 top, 2 bottom layout */}
+            <div className="space-y-6 text-left">
+              <div className="grid sm:grid-cols-3 gap-6">
+                {[
+                  { text: 'Moving fast when time matters' },
+                  { text: 'Delivering better value so partners can serve more families' },
+                  { text: 'Providing flexible options that meet unique needs' },
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-lg p-6 shadow-lg">
+                    <p className="text-navy font-medium">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                {[
+                  { text: 'Removing friction from an already stressful transition' },
+                  { text: "Treating every stay like someone's home, not a transaction" },
+                ].map((item, i) => (
+                  <div key={i} className="bg-white rounded-lg p-6 shadow-lg">
+                    <p className="text-navy font-medium">{item.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <p className="mt-10 text-lg text-white/80 max-w-3xl mx-auto">
-              When families feel cared for, adjusters feel supported, and agencies feel confident that their people are in good hands — we know we've fulfilled our mission.
+              When families feel cared for, adjusters feel supported, and agencies feel confident that their people are in good hands — we know we&apos;ve fulfilled our mission.
             </p>
           </div>
         </div>
@@ -236,8 +247,12 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto mb-14">
             {teamMembers.slice(0, 2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className={`aspect-[4/3] bg-gradient-to-br ${member.gradient} flex items-center justify-center`}>
-                  <span className="text-white text-7xl font-bold opacity-80">{member.initials}</span>
+                <div className="aspect-[4/3] bg-gray-100 overflow-hidden">
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="p-8">
                   <h3 className="text-2xl font-heading font-bold text-navy mb-1">
@@ -263,8 +278,12 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {teamMembers.slice(2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className={`aspect-[3/2] bg-gradient-to-br ${member.gradient} flex items-center justify-center`}>
-                  <span className="text-white text-5xl font-bold opacity-80">{member.initials}</span>
+                <div className="aspect-[3/2] bg-gray-100 overflow-hidden">
+                  <img
+                    src={member.photo}
+                    alt={member.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="p-6">
                   <h3 className="text-xl font-heading font-bold text-navy mb-1">
@@ -275,77 +294,6 @@ export default function AboutPage() {
                     {member.bio}
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-navy mb-4">
-              What Our Clients Say
-            </h2>
-            <p className="text-lg text-gray-600">
-              Real experiences from property owners and managers we've worked with
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                name: 'Orla',
-                initial: 'O',
-                quote: 'Cory was wonderful to work with and his follow up and follow through is second to none! He would often call, text or email long after business hours and was really focused on his clients needs.',
-                date: 'October 2024',
-              },
-              {
-                name: 'Obie',
-                initial: 'O',
-                quote: 'Cory was simply amazing. I cannot wait to do business with him again. He was efficient, prompt, knowledgeable, customer oriented.',
-                date: 'October 2024',
-              },
-              {
-                name: 'Sean',
-                initial: 'S',
-                quote: 'Working with Cory was stress-free and easy. He got us the best possible rate for our homeowner client and made the process simple.',
-                date: 'iTrip Annapolis',
-              },
-              {
-                name: 'Joy',
-                initial: 'J',
-                quote: 'Cory is so nice to work with and he bring us great tenants! I as a realtor and property manager would like to work with him again and again! They are pros, and I give 5 star evaluation!',
-                date: 'October 2024',
-              },
-              {
-                name: 'George',
-                initial: 'G',
-                quote: 'It was a pleasure working with Cory and Haven Housing. They were very professional and followed through on all their commitments. I would not hesitate to recommend them.',
-                date: 'October 2024',
-              },
-              {
-                name: 'Jennifer',
-                initial: 'J',
-                quote: 'Cory was great to work with. He was transparent up front with the fee structure, and followed up quickly with a contract in hand. He had a thorough understanding of the industry.',
-                date: 'September 2024',
-              },
-            ].map((testimonial, i) => (
-              <div key={i} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-orange rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {testimonial.initial}
-                  </div>
-                  <div className="ml-4">
-                    <h4 className="font-bold text-navy">{testimonial.name}</h4>
-                    <div className="text-orange text-sm">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                  </div>
-                </div>
-                <p className="text-gray-600 italic mb-4">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-                <p className="text-gray-500 text-sm">{testimonial.date}</p>
               </div>
             ))}
           </div>

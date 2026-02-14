@@ -83,11 +83,11 @@ export default function ProfilePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Full Name</label>
-            <p className="text-gray-900">{user?.user_metadata?.full_name || 'Not set'}</p>
+            <p className="text-gray-900">{(user as any)?.user_metadata?.full_name || 'Not set'}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Role</label>
-            <p className="text-gray-900 capitalize">{user?.user_metadata?.role || 'client'}</p>
+            <p className="text-gray-900 capitalize">{(user as any)?.user_metadata?.role || 'client'}</p>
           </div>
         </div>
       </div>

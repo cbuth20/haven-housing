@@ -41,7 +41,7 @@ export function Header() {
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
               <span className="text-2xl font-heading font-bold text-navy">
-                Haven Housing
+                Haven Housing Solutions
               </span>
             </Link>
           </div>
@@ -70,14 +70,14 @@ export function Header() {
                 </button>
               }
             >
-              <DropdownLink href="/services/government" icon={BuildingLibraryIcon}>
-                Government
-              </DropdownLink>
               <DropdownLink href="/services/insurance" icon={ShieldCheckIcon}>
                 Insurance
               </DropdownLink>
               <DropdownLink href="/services/corporate" icon={BriefcaseIcon}>
                 Corporate
+              </DropdownLink>
+              <DropdownLink href="/services/government" icon={BuildingLibraryIcon}>
+                Government
               </DropdownLink>
             </Dropdown>
 
@@ -92,6 +92,12 @@ export function Header() {
               className="text-gray-700 hover:text-navy font-medium"
             >
               Contact
+            </Link>
+            <Link
+              href="/submit-property"
+              className="text-orange hover:text-orange-600 font-medium"
+            >
+              Submit a Property
             </Link>
           </div>
 

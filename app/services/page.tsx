@@ -10,19 +10,6 @@ export const metadata: Metadata = {
 export default function ServicesPage() {
   const services = [
     {
-      icon: BuildingLibraryIcon,
-      title: 'Government & Military',
-      description: 'Trusted housing solutions for government and military personnel on temporary or extended assignments throughout the United States.',
-      href: '/services/government',
-      color: 'from-blue-600 to-blue-700',
-      features: [
-        'Certified small business',
-        'Cost-effective solutions',
-        'Extensive network nationwide',
-        'UEI: HUHKMBJVN178',
-      ],
-    },
-    {
       icon: ShieldCheckIcon,
       title: 'Insurance Placements',
       description: 'Tailored temporary housing solutions for policyholders facing displacement, creating seamless relocation experiences.',
@@ -46,6 +33,19 @@ export default function ServicesPage() {
         'Dedicated support team',
         'Flexible terms',
         'Fast turnarounds',
+      ],
+    },
+    {
+      icon: BuildingLibraryIcon,
+      title: 'Government & Military',
+      description: 'Trusted housing solutions for government and military personnel on temporary or extended assignments throughout the United States.',
+      href: '/services/government',
+      color: 'from-blue-600 to-blue-700',
+      features: [
+        'Certified small business',
+        'Cost-effective solutions',
+        'Extensive network nationwide',
+        'UEI: HUHKMBJVN178',
       ],
     },
   ]

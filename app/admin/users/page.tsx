@@ -145,8 +145,8 @@ export default function UsersPage() {
         <Button
           variant="primary"
           onClick={handleCreateNew}
-          icon={<PlusIcon className="h-5 w-5" />}
         >
+          <PlusIcon className="h-5 w-5 mr-2" />
           Add User
         </Button>
       </div>

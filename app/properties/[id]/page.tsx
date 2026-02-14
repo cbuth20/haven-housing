@@ -7,14 +7,12 @@ import { PropertyAmenities } from '@/components/property/PropertyAmenities'
 import { StreetViewEmbed } from '@/components/maps/StreetViewEmbed'
 import { MapView } from '@/components/maps/MapView'
 import { Button } from '@/components/common/Button'
+import { RequestToBookButton } from '@/components/property/RequestToBookButton'
+import { BackToSearchButton } from '@/components/property/BackToSearchButton'
 import { formatCurrency } from '@/lib/utils'
 import {
-  ArrowLeftIcon,
   MapPinIcon,
   HomeIcon,
-  CurrencyDollarIcon,
-  EnvelopeIcon,
-  PhoneIcon,
   LinkIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline'
@@ -74,12 +72,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
       {/* Back Button */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Link href="/properties">
-            <Button variant="ghost" size="sm">
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Back to Search
-            </Button>
-          </Link>
+          <BackToSearchButton />
         </div>
       </div>
 
@@ -234,61 +227,31 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
+            {/* Request to Book Card */}
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
               <h2 className="text-xl font-heading font-bold text-navy mb-4">
-                Contact Information
+                Interested in This Property?
               </h2>
+              <p className="text-gray-600 text-sm mb-4">
+                Submit a request and our team will get back to you with availability and next steps.
+              </p>
 
-              {property.landlord_name && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-1">Landlord</p>
-                  <p className="font-semibold text-gray-900">{property.landlord_name}</p>
-                </div>
-              )}
-
-              {property.landlord_email && (
-                <a
-                  href={`mailto:${property.landlord_email}`}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-3"
-                >
-                  <EnvelopeIcon className="h-5 w-5 text-navy" />
-                  <span className="text-gray-900">{property.landlord_email}</span>
-                </a>
-              )}
-
-              {property.landlord_phone && (
-                <a
-                  href={`tel:${property.landlord_phone}`}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-3"
-                >
-                  <PhoneIcon className="h-5 w-5 text-navy" />
-                  <span className="text-gray-900">{property.landlord_phone}</span>
-                </a>
-              )}
+              <RequestToBookButton
+                propertyTitle={property.title}
+                propertyAddress={fullAddress}
+              />
 
               {property.listing_link && (
                 <a
                   href={property.listing_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mb-3"
+                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mt-3"
                 >
                   <LinkIcon className="h-5 w-5 text-navy" />
                   <span className="text-gray-900">View Original Listing</span>
                 </a>
               )}
-
-              {!property.landlord_email && !property.landlord_phone && (
-                <p className="text-gray-500 text-sm">
-                  Contact information not available. Please check back later.
-                </p>
-              )}
-
-              <Button variant="primary" className="w-full mt-4">
-                <EnvelopeIcon className="h-5 w-5 mr-2" />
-                Request Information
-              </Button>
             </div>
 
             {/* Share */}

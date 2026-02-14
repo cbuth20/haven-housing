@@ -1,5 +1,5 @@
 import { ContactForm } from '@/components/forms/ContactForm'
-import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { EnvelopeIcon, PhoneIcon, ClockIcon } from '@heroicons/react/24/outline'
 
 export default function ContactPage() {
   return (
@@ -10,7 +10,7 @@ export default function ContactPage() {
             Contact Us
           </h1>
           <p className="text-xl text-gray-200">
-            We're here to help. Reach out with any questions.
+            We&apos;re here to help. Reach out with any questions.
           </p>
         </div>
       </div>
@@ -30,10 +30,9 @@ export default function ContactPage() {
                 <PhoneIcon className="h-6 w-6 text-navy mr-4 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                  <a href="tel:1-800-HAVEN-HS" className="text-navy hover:text-navy-700">
-                    1-800-HAVEN-HS
+                  <a href="tel:1-844-454-2836" className="text-navy hover:text-navy-700">
+                    1-844-454-2836
                   </a>
-                  <p className="text-sm text-gray-600">Available 24/7 for emergencies</p>
                 </div>
               </div>
 
@@ -41,33 +40,23 @@ export default function ContactPage() {
                 <EnvelopeIcon className="h-6 w-6 text-navy mr-4 flex-shrink-0 mt-1" />
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
-                  <a href="mailto:info@havenhousing.com" className="text-navy hover:text-navy-700">
-                    info@havenhousing.com
+                  <a href="mailto:questions@havenhousingsolutions.com" className="text-navy hover:text-navy-700">
+                    questions@havenhousingsolutions.com
                   </a>
-                  <p className="text-sm text-gray-600">We'll respond within 24 hours</p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <MapPinIcon className="h-6 w-6 text-navy mr-4 flex-shrink-0 mt-1" />
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Office</h3>
-                  <p className="text-gray-700">
-                    123 Haven Street<br />
-                    Suite 400<br />
-                    Your City, ST 12345
-                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mt-8">
-              <h3 className="font-semibold text-blue-900 mb-2">Business Hours</h3>
-              <div className="text-blue-800 space-y-1">
-                <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                <p>Saturday: 9:00 AM - 4:00 PM</p>
-                <p>Sunday: Closed</p>
-                <p className="text-sm mt-2">Emergency support available 24/7</p>
+              <div className="flex items-start gap-3">
+                <ClockIcon className="h-6 w-6 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 mb-2">Business Hours</h3>
+                  <div className="text-blue-800 space-y-1">
+                    <p>Monday - Friday: 5:00 AM - 5:00 PM PST</p>
+                    <p className="text-sm mt-2 font-medium">Emergency support available 24/7</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

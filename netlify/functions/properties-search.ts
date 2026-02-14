@@ -27,7 +27,7 @@ const handler = optionalAuth(async (event: OptionalAuthEvent) => {
     const search = body.search || null
     const sortBy = SORT_ALLOWLIST.includes(body.sortBy) ? body.sortBy : null
     const sortDirection: 'asc' | 'desc' = body.sortDirection === 'asc' ? 'asc' : 'desc'
-    const limit = Math.min(Number(body.limit) || 50, 500)
+    const limit = Math.min(Number(body.limit) || 200, 500)
     const offset = Number(body.offset) || 0
 
     // Status logic: admins can filter by any status or 'all'; public always gets 'published'

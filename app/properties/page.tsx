@@ -36,57 +36,17 @@ export default function PropertiesPage() {
   const searchRef = useRef(searchProperties)
   searchRef.current = searchProperties
 
-  // Single mount effect: search LA immediately, then try geolocation
+  // Initial load: show all properties without location filter
   useEffect(() => {
     let cancelled = false
 
     const init = async () => {
+      // Load all published properties without geo filter
       await searchRef.current({
-        lat: LA_CENTER.lat,
-        lng: LA_CENTER.lng,
-        radius: 20,
+        limit: 200,
       })
       if (!cancelled) {
-        setLocation('Los Angeles, CA')
         setInitialLoadDone(true)
-      }
-
-      try {
-        const userCoords = await getCurrentLocation()
-        if (cancelled) return
-
-        setMapCenter(userCoords)
-        setMapZoom(11)
-
-        try {
-          await loadGoogleMaps()
-          const geocoder = new google.maps.Geocoder()
-          const result = await geocoder.geocode({
-            location: { lat: userCoords.lat, lng: userCoords.lng },
-          })
-          if (!cancelled && result.results?.length) {
-            const cityResult = result.results.find((r) =>
-              r.types.includes('locality')
-            )
-            setLocation(
-              cityResult
-                ? cityResult.formatted_address
-                : result.results[0].formatted_address
-            )
-          }
-        } catch {
-          // Reverse geocode failed — keep coordinates
-        }
-
-        if (!cancelled) {
-          await searchRef.current({
-            lat: userCoords.lat,
-            lng: userCoords.lng,
-            radius: 20,
-          })
-        }
-      } catch {
-        // Geolocation denied/unavailable — keep LA results
       }
     }
 
