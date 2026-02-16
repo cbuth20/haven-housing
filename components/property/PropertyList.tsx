@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Property } from '@/types/property'
 import { PropertyCard } from './PropertyCard'
 import { Button } from '@/components/common/Button'
+import { getPropertyDisplayTitle } from '@/lib/property-utils'
 import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline'
 
 interface PropertyListProps {
@@ -71,7 +72,7 @@ export function PropertyList({ properties, onPropertyClick }: PropertyListProps)
                   {property.cover_photo_url ? (
                     <img
                       src={property.cover_photo_url}
-                      alt={property.title}
+                      alt={getPropertyDisplayTitle(property)}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -85,7 +86,7 @@ export function PropertyList({ properties, onPropertyClick }: PropertyListProps)
                 <div className="p-6 flex-1">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="text-xl font-heading font-bold text-navy">
-                      {property.title}
+                      {getPropertyDisplayTitle(property)}
                     </h3>
                     {property.monthly_rent && (
                       <p className="text-xl font-bold text-navy ml-4">

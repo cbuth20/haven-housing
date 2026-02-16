@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/common/Button'
 import { Property } from '@/types/property'
+import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 import { HomeIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 
 const testimonials = [
@@ -103,13 +104,13 @@ function FeaturedProperties() {
               >
                 <img
                   src={property.cover_photo_url!}
-                  alt={property.title}
+                  alt={getPropertyDisplayTitle(property)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <p className="text-white text-sm font-semibold line-clamp-1">{property.title}</p>
-                  <p className="text-white/80 text-xs">{property.city}, {property.state}</p>
+                  <p className="text-white text-sm font-semibold line-clamp-1">{getPropertyDisplayTitle(property)}</p>
+                  <p className="text-white/80 text-xs">{extractPlainText(property.city)}, {extractPlainText(property.state)}</p>
                 </div>
               </Link>
             ))}

@@ -1,6 +1,23 @@
 import { Property } from '@/types/property'
 
 /**
+ * Extract plain text from potentially JSON-formatted fields (Wix migration issue)
+ * Some fields may contain {"formatted":"value"} instead of plain strings
+ */
+export function extractPlainText(value: string | null | undefined): string {
+  if (!value) return ''
+  if (typeof value === 'string' && value.includes('{"formatted"')) {
+    try {
+      const parsed = JSON.parse(value)
+      return parsed.formatted || value
+    } catch {
+      return value
+    }
+  }
+  return value
+}
+
+/**
  * Get a display-friendly title for a property
  * If title is missing or "Untitled Property", use the address instead
  */
@@ -11,14 +28,17 @@ export function getPropertyDisplayTitle(property: Property): string {
     return property.title
   }
 
-  // Fallback to address
-  if (property.street_address) {
-    return property.street_address
+  // Fallback to address (handle JSON-formatted fields from Wix migration)
+  const streetAddress = extractPlainText(property.street_address)
+  if (streetAddress) {
+    return streetAddress
   }
 
   // Fallback to city/state
-  if (property.city && property.state) {
-    return `${property.city}, ${property.state}`
+  const city = extractPlainText(property.city)
+  const state = extractPlainText(property.state)
+  if (city && state) {
+    return `${city}, ${state}`
   }
 
   // Last resort

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 import {
   BuildingOfficeIcon,
   DocumentTextIcon,
@@ -210,10 +211,10 @@ export default function AdminDashboard() {
                 {stats.recentProperties.map((property) => (
                   <tr key={property.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                      {property.title}
+                      {getPropertyDisplayTitle(property)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600">
-                      {property.city}, {property.state}
+                      {extractPlainText(property.city)}, {extractPlainText(property.state)}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span

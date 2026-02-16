@@ -4,7 +4,7 @@ import { Property } from '@/types/property'
 import { HomeIcon, MapPinIcon, CurrencyDollarIcon, CheckBadgeIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { HomeIcon as HomeIconSolid, SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid'
 import Image from 'next/image'
-import { getPropertyDisplayTitle } from '@/lib/property-utils'
+import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 
 interface PropertyListCardProps {
   property: Property
@@ -34,7 +34,7 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
           {hasImage ? (
             <Image
               src={property.cover_photo_url!}
-              alt={property.title}
+              alt={getPropertyDisplayTitle(property)}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
               sizes="224px"
@@ -90,8 +90,8 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
             <div className="flex items-center gap-1 text-gray-600 mb-3">
               <MapPinIcon className="h-4 w-4 flex-shrink-0" />
               <p className="text-sm truncate">
-                {property.street_address && `${property.street_address}, `}
-                {property.city}, {property.state} {property.zip_code}
+                {property.street_address && `${extractPlainText(property.street_address)}, `}
+                {extractPlainText(property.city)}, {extractPlainText(property.state)} {extractPlainText(property.zip_code)}
               </p>
             </div>
 

@@ -17,6 +17,8 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
     name: '',
     email: '',
     phone: '',
+    checkInDate: '',
+    checkOutDate: '',
     message: '',
   })
 
@@ -25,6 +27,20 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
     setIsSubmitting(true)
 
     try {
+      // Build message with optional date fields
+      let messageText = `Property: ${propertyTitle}\nAddress: ${propertyAddress}\n`
+
+      if (formData.checkInDate) {
+        messageText += `\nCheck-in Date: ${formData.checkInDate}`
+      }
+      if (formData.checkOutDate) {
+        messageText += `\nCheck-out Date: ${formData.checkOutDate}`
+      }
+
+      if (formData.message) {
+        messageText += `\n\n${formData.message}`
+      }
+
       const response = await fetch('/.netlify/functions/form-submit-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -33,7 +49,7 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
           email: formData.email,
           phone: formData.phone,
           subject: `Request to Book: ${propertyTitle}`,
-          message: `Property: ${propertyTitle}\nAddress: ${propertyAddress}\n\n${formData.message}`,
+          message: messageText,
         }),
       })
 
@@ -124,13 +140,36 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Check-in Date</label>
+                      <input
+                        type="date"
+                        value={formData.checkInDate}
+                        onChange={(e) => setFormData({ ...formData, checkInDate: e.target.value })}
+                        min={new Date().toISOString().split('T')[0]}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Check-out Date</label>
+                      <input
+                        type="date"
+                        value={formData.checkOutDate}
+                        onChange={(e) => setFormData({ ...formData, checkOutDate: e.target.value })}
+                        min={formData.checkInDate || new Date().toISOString().split('T')[0]}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Additional Information</label>
                     <textarea
                       rows={3}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      placeholder="Desired dates, number of guests, special requirements..."
+                      placeholder="Number of guests, special requirements..."
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy focus:outline-none"
                     />
                   </div>

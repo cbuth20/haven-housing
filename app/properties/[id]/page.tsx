@@ -9,6 +9,7 @@ import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
 import { BackToSearchButton } from '@/components/property/BackToSearchButton'
 import { formatCurrency } from '@/lib/utils'
+import { extractPlainText } from '@/lib/property-utils'
 import {
   MapPinIcon,
   HomeIcon,
@@ -64,7 +65,11 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
   }
 
   const hasCoordinates = property.latitude && property.longitude
-  const fullAddress = `${property.street_address}, ${property.city}, ${property.state} ${property.zip_code}`
+  const streetAddress = extractPlainText(property.street_address)
+  const city = extractPlainText(property.city)
+  const state = extractPlainText(property.state)
+  const zipCode = extractPlainText(property.zip_code)
+  const fullAddress = `${streetAddress}, ${city}, ${state} ${zipCode}`
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -81,7 +86,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
           <div className="lg:col-span-2 space-y-8">
             {/* Photo Gallery */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <PropertyGallery images={images} propertyTitle={property.title} />
+              <PropertyGallery images={images} propertyTitle={streetAddress} />
             </div>
 
             {/* Property Details */}
@@ -89,11 +94,11 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <h1 className="text-3xl font-heading font-bold text-navy mb-2">
-                    {property.title}
+                    {streetAddress}
                   </h1>
                   <div className="flex items-center text-gray-600 mb-4">
                     <MapPinIcon className="h-5 w-5 mr-2" />
-                    <span>{fullAddress}</span>
+                    <span>{city}, {state} {zipCode}</span>
                   </div>
                 </div>
                 {property.featured && (
@@ -223,7 +228,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
               </p>
 
               <RequestToBookButton
-                propertyTitle={property.title}
+                propertyTitle={streetAddress}
                 propertyAddress={fullAddress}
               />
 
@@ -268,7 +273,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                     {similar.cover_photo_url ? (
                       <img
                         src={similar.cover_photo_url}
-                        alt={similar.title}
+                        alt={extractPlainText(similar.street_address)}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -279,10 +284,10 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
-                      {similar.title}
+                      {extractPlainText(similar.street_address)}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {similar.city}, {similar.state}
+                      {extractPlainText(similar.city)}, {extractPlainText(similar.state)}
                     </p>
                     {similar.monthly_rent && (
                       <p className="text-lg font-bold text-navy">

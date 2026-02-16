@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Input } from '@/components/common/Input'
 import { Select } from '@/components/common/Select'
 import { Button } from '@/components/common/Button'
-import { MagnifyingGlassIcon, MapPinIcon } from '@heroicons/react/24/outline'
-import { geocodeAddress, getCurrentLocation } from '@/lib/google-maps'
+import { PlacesAutocompleteDropdown } from './PlacesAutocompleteDropdown'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
 
 interface PropertyFiltersProps {
   onSearch: (filters: SearchFilters) => void
@@ -25,6 +26,7 @@ export interface SearchFilters {
 
 export function PropertyFilters({ onSearch, isLoading = false }: PropertyFiltersProps) {
   const [location, setLocation] = useState('')
+  const [selectedPlace, setSelectedPlace] = useState<google.maps.places.AutocompletePrediction | null>(null)
   const [radius, setRadius] = useState('20')
   const [minBeds, setMinBeds] = useState('')
   const [minBaths, setMinBaths] = useState('')
@@ -32,30 +34,90 @@ export function PropertyFilters({ onSearch, isLoading = false }: PropertyFilters
   const [petFriendly, setPetFriendly] = useState('all')
   const [isGeolocating, setIsGeolocating] = useState(false)
 
+  const handlePlaceSelect = async (place: google.maps.places.AutocompletePrediction) => {
+    setSelectedPlace(place)
+
+    // Get place details to extract coordinates
+    await loadGoogleMaps()
+    const placesService = new google.maps.places.PlacesService(document.createElement('div'))
+
+    placesService.getDetails(
+      {
+        placeId: place.place_id,
+        fields: ['geometry'],
+      },
+      (result, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && result?.geometry?.location) {
+          const coords = {
+            lat: result.geometry.location.lat(),
+            lng: result.geometry.location.lng(),
+          }
+
+          // Auto-trigger search when place is selected
+          const filters: SearchFilters = {
+            location: place.description,
+            lat: coords.lat,
+            lng: coords.lng,
+            radius: Number(radius),
+          }
+
+          if (minBeds) filters.minBeds = Number(minBeds)
+          if (minBaths) filters.minBaths = Number(minBaths)
+          if (maxRent) filters.maxRent = Number(maxRent)
+          if (petFriendly !== 'all') {
+            filters.allowsPets = petFriendly === 'yes'
+          }
+
+          onSearch(filters)
+        }
+      }
+    )
+  }
+
   const handleSearch = async () => {
     const filters: SearchFilters = {
       location,
       radius: Number(radius),
     }
 
-    // Geocode the location if provided
-    if (location) {
-      const coords = await geocodeAddress(location)
-      if (coords) {
-        filters.lat = coords.lat
-        filters.lng = coords.lng
+    // Use coordinates from selected place if available
+    if (selectedPlace) {
+      await loadGoogleMaps()
+      const placesService = new google.maps.places.PlacesService(document.createElement('div'))
+
+      placesService.getDetails(
+        {
+          placeId: selectedPlace.place_id,
+          fields: ['geometry'],
+        },
+        (result, status) => {
+          if (status === google.maps.places.PlacesServiceStatus.OK && result?.geometry?.location) {
+            filters.lat = result.geometry.location.lat()
+            filters.lng = result.geometry.location.lng()
+          }
+
+          // Add other filters
+          if (minBeds) filters.minBeds = Number(minBeds)
+          if (minBaths) filters.minBaths = Number(minBaths)
+          if (maxRent) filters.maxRent = Number(maxRent)
+          if (petFriendly !== 'all') {
+            filters.allowsPets = petFriendly === 'yes'
+          }
+
+          onSearch(filters)
+        }
+      )
+    } else {
+      // Add other filters
+      if (minBeds) filters.minBeds = Number(minBeds)
+      if (minBaths) filters.minBaths = Number(minBaths)
+      if (maxRent) filters.maxRent = Number(maxRent)
+      if (petFriendly !== 'all') {
+        filters.allowsPets = petFriendly === 'yes'
       }
-    }
 
-    // Add other filters
-    if (minBeds) filters.minBeds = Number(minBeds)
-    if (minBaths) filters.minBaths = Number(minBaths)
-    if (maxRent) filters.maxRent = Number(maxRent)
-    if (petFriendly !== 'all') {
-      filters.allowsPets = petFriendly === 'yes'
+      onSearch(filters)
     }
-
-    onSearch(filters)
   }
 
   const handleUseMyLocation = async () => {
@@ -130,17 +192,12 @@ export function PropertyFilters({ onSearch, isLoading = false }: PropertyFilters
           Location
         </label>
         <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Enter city, state, or zip code"
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
-            />
-          </div>
+          <PlacesAutocompleteDropdown
+            value={location}
+            onChange={setLocation}
+            onPlaceSelect={handlePlaceSelect}
+            className="flex-1"
+          />
           <Button
             variant="outline"
             onClick={handleUseMyLocation}

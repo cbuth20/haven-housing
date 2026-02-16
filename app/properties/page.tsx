@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { SearchFilters } from '@/components/property/PropertyFilters'
+import { PlacesAutocompleteDropdown } from '@/components/property/PlacesAutocompleteDropdown'
 import { MapView } from '@/components/maps/MapView'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PropertyListCard } from '@/components/property/PropertyListCard'
@@ -10,7 +11,7 @@ import { usePropertySearch } from '@/hooks/usePropertySearch'
 import { Property } from '@/types/property'
 import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
-import { geocodeAddress, getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
+import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
 import { formatCurrency } from '@/lib/utils'
 
 const LA_CENTER = { lat: 34.0522, lng: -118.2437 }
@@ -36,17 +37,46 @@ export default function PropertiesPage() {
   const searchRef = useRef(searchProperties)
   searchRef.current = searchProperties
 
-  // Initial load: show all properties without location filter
+  // Initial load: try to get user's location, or default to San Diego
   useEffect(() => {
     let cancelled = false
 
     const init = async () => {
-      // Load all published properties without geo filter
-      await searchRef.current({
-        limit: 200,
-      })
-      if (!cancelled) {
-        setInitialLoadDone(true)
+      try {
+        // Try to get user's current location
+        const coords = await getCurrentLocation()
+        if (!cancelled) {
+          setMapCenter({ lat: coords.lat, lng: coords.lng })
+          setMapZoom(11)
+
+          // Load properties near user's location
+          await searchRef.current({
+            lat: coords.lat,
+            lon: coords.lng,
+            radius: 20,
+            limit: 500,
+          })
+        }
+      } catch (error) {
+        // User denied location or geolocation not available
+        // Default to San Diego area
+        if (!cancelled) {
+          const sanDiego = { lat: 32.7157, lng: -117.1611 }
+          setMapCenter(sanDiego)
+          setMapZoom(11)
+
+          // Load properties near San Diego
+          await searchRef.current({
+            lat: sanDiego.lat,
+            lon: sanDiego.lng,
+            radius: 20,
+            limit: 500,
+          })
+        }
+      } finally {
+        if (!cancelled) {
+          setInitialLoadDone(true)
+        }
       }
     }
 
@@ -54,20 +84,51 @@ export default function PropertiesPage() {
     return () => { cancelled = true }
   }, [])
 
+  const handlePlaceSelect = useCallback(async (place: google.maps.places.AutocompletePrediction) => {
+    // Get place details to extract coordinates
+    await loadGoogleMaps()
+    const placesService = new google.maps.places.PlacesService(document.createElement('div'))
+
+    placesService.getDetails(
+      {
+        placeId: place.place_id,
+        fields: ['geometry'],
+      },
+      (result, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK && result?.geometry?.location) {
+          const coords = {
+            lat: result.geometry.location.lat(),
+            lng: result.geometry.location.lng(),
+          }
+
+          setMapCenter(coords)
+          setMapZoom(11)
+
+          // Auto-trigger search when place is selected
+          const filters: SearchFilters = {
+            location: place.description,
+            lat: coords.lat,
+            lng: coords.lng,
+            radius: Number(radius),
+          }
+
+          if (minBeds) filters.minBeds = Number(minBeds)
+          if (minBaths) filters.minBaths = Number(minBaths)
+          if (maxRent) filters.maxRent = Number(maxRent)
+          if (petFriendly !== 'all') {
+            filters.allowsPets = petFriendly === 'yes'
+          }
+
+          searchProperties(filters)
+        }
+      }
+    )
+  }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
+
   const handleSearch = useCallback(async () => {
     const filters: SearchFilters = {
       location,
       radius: Number(radius),
-    }
-
-    if (location) {
-      const coords = await geocodeAddress(location)
-      if (coords) {
-        filters.lat = coords.lat
-        filters.lng = coords.lng
-        setMapCenter({ lat: coords.lat, lng: coords.lng })
-        setMapZoom(11)
-      }
     }
 
     if (minBeds) filters.minBeds = Number(minBeds)
@@ -150,14 +211,11 @@ export default function PropertiesPage() {
           <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
             <div className="space-y-4">
               <div className="relative">
-                <MapPinIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
+                <PlacesAutocompleteDropdown
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="Enter city, state, or zip code"
-                  className="w-full pl-10 pr-32 py-3 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy"
+                  onChange={setLocation}
+                  onPlaceSelect={handlePlaceSelect}
+                  placeholder="Search for a City, Neighborhood, street, or point of interest"
                 />
                 <Button
                   variant="ghost"

@@ -1,5 +1,6 @@
 import { Property } from '@/types/property'
 import { formatCurrency } from '@/lib/utils'
+import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 import { MapPinIcon, HomeIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
 
@@ -31,7 +32,7 @@ export function PropertyCard({
         {property.cover_photo_url ? (
           <img
             src={property.cover_photo_url}
-            alt={property.title}
+            alt={getPropertyDisplayTitle(property)}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -52,13 +53,13 @@ export function PropertyCard({
       {/* Content */}
       <div className="p-4">
         <h3 className="text-lg font-heading font-bold text-navy mb-2 truncate">
-          {property.title}
+          {getPropertyDisplayTitle(property)}
         </h3>
 
         <div className="flex items-center text-sm text-gray-600 mb-2">
           <MapPinIcon className="h-4 w-4 mr-1" />
           <span className="truncate">
-            {property.city}, {property.state}
+            {extractPlainText(property.city)}, {extractPlainText(property.state)}
           </span>
         </div>
 

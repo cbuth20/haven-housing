@@ -114,7 +114,7 @@ export function PropertyDetailsModal({
             <div className="relative aspect-video bg-gray-100 rounded-lg overflow-hidden">
               <Image
                 src={images[selectedImageIndex]}
-                alt={`${property.title} - Image ${selectedImageIndex + 1}`}
+                alt={`${getPropertyDisplayTitle(property)} - Image ${selectedImageIndex + 1}`}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
