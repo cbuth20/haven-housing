@@ -64,10 +64,7 @@ export function PlacesAutocompleteDropdown({
   }, [])
 
   const fetchPredictions = useCallback((input: string) => {
-    console.log('🔍 fetchPredictions called with:', input)
-
     if (!input || input.length < 2) {
-      console.log('⚠️ Input too short or empty')
       setPredictions([])
       setShowDropdown(false)
       setIsLoading(false)
@@ -75,15 +72,12 @@ export function PlacesAutocompleteDropdown({
     }
 
     if (!autocompleteServiceRef.current) {
-      console.log('❌ Autocomplete service not initialized')
       return
     }
 
-    console.log('⏳ Setting loading state, showing dropdown')
     setIsLoading(true)
     setShowDropdown(true)
 
-    console.log('📡 Calling Google Places API...')
     autocompleteServiceRef.current.getPlacePredictions(
       {
         input,
@@ -91,19 +85,16 @@ export function PlacesAutocompleteDropdown({
         sessionToken: sessionTokenRef.current!,
       },
       (results, status) => {
-        console.log('📍 Places API response:', { status, resultsCount: results?.length || 0 })
         setIsLoading(false)
 
         if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          console.log('✅ Got predictions:', results.map(r => r.description))
           setPredictions(results)
           setShowDropdown(true)
         } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          console.log('ℹ️ Zero results')
           setPredictions([])
           setShowDropdown(false)
         } else {
-          console.error('❌ Places API error:', status)
+          console.error('Places API error:', status)
           setPredictions([])
           setShowDropdown(false)
         }
@@ -113,7 +104,6 @@ export function PlacesAutocompleteDropdown({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
-    console.log('⌨️ Input changed:', newValue)
     onChange(newValue)
 
     // Clear existing timer
@@ -122,9 +112,7 @@ export function PlacesAutocompleteDropdown({
     }
 
     // Debounce API calls by 300ms
-    console.log('⏱️ Setting debounce timer (300ms)')
     debounceTimerRef.current = setTimeout(() => {
-      console.log('⏰ Debounce timer fired')
       fetchPredictions(newValue)
     }, 300)
   }
@@ -164,7 +152,6 @@ export function PlacesAutocompleteDropdown({
           ref={dropdownRef}
           className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto"
         >
-          {console.log('🎨 Rendering dropdown - isLoading:', isLoading, 'predictions:', predictions.length)}
           <div className="p-3">
             <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
               Location
