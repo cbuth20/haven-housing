@@ -40,6 +40,13 @@ const teamMembers = [
     photo: '/images/team/terri-royse.jpg',
     gradient: 'from-navy to-orange',
   },
+  {
+    name: 'Kristina Ognjanovac',
+    title: 'Customer Care Specialist',
+    bio: 'With more than eight years in insurance relocation and temporary housing and over 20 years in customer service, Kristina combines operational expertise with genuine compassion. A top-performing Guest Service Representative, she supports displaced families, insurance adjusters, and carrier partners during life\'s most disruptive moments. Kristina manages high-volume ALE files, coordinates lease extensions, resolves billing discrepancies, and ensures clear communication between property owners, insurers, and insured families. At Haven Housing Solutions, she is dedicated to connecting carriers, property partners, and displaced households with professionalism, urgency, and care, restoring stability and delivering dependable housing solutions when families need them most. In her free time, she enjoys spending time with family, especially engaging with her teenage sons.',
+    photo: '/images/team/kristina-ognjanovac.png',
+    gradient: 'from-orange to-navy',
+  },
 ]
 
 const coreValues = [
@@ -159,25 +166,25 @@ export default function AboutPage() {
             </p>
 
             {/* 3 top, 2 bottom layout */}
-            <div className="space-y-6 text-left">
+            <div className="space-y-6">
               <div className="grid sm:grid-cols-3 gap-6">
                 {[
-                  { text: 'Moving fast when time matters' },
-                  { text: 'Delivering better value so partners can serve more families' },
-                  { text: 'Providing flexible options that meet unique needs' },
+                  { text: 'Moving fast when time matters.' },
+                  { text: 'Delivering better value so partners can serve more families.' },
+                  { text: 'Providing flexible options that meet unique needs.' },
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-lg p-6 shadow-lg">
-                    <p className="text-navy font-medium">{item.text}</p>
+                    <p className="text-navy font-medium text-center">{item.text}</p>
                   </div>
                 ))}
               </div>
               <div className="grid sm:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 {[
-                  { text: 'Removing friction from an already stressful transition' },
-                  { text: "Treating every stay like someone's home, not a transaction" },
+                  { text: 'Removing friction from an already stressful transition.' },
+                  { text: "Treating every stay like someone's home, not a transaction." },
                 ].map((item, i) => (
                   <div key={i} className="bg-white rounded-lg p-6 shadow-lg">
-                    <p className="text-navy font-medium">{item.text}</p>
+                    <p className="text-navy font-medium text-center">{item.text}</p>
                   </div>
                 ))}
               </div>

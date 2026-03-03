@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PropertyListCard } from '@/components/property/PropertyListCard'
 import { usePropertySearch } from '@/hooks/usePropertySearch'
 import { Property } from '@/types/property'
-import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
 import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
 import { formatCurrency } from '@/lib/utils'
@@ -32,6 +32,7 @@ export default function PropertiesPage() {
   const [maxRent, setMaxRent] = useState('')
   const [petFriendly, setPetFriendly] = useState('all')
   const [isGeolocating, setIsGeolocating] = useState(false)
+  const [isGlobalView, setIsGlobalView] = useState(false)
 
   // Stable ref for searchProperties so the mount effect doesn't go stale
   const searchRef = useRef(searchProperties)
@@ -141,6 +142,19 @@ export default function PropertiesPage() {
     await searchProperties(filters)
   }, [location, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
 
+  const handleGlobalView = useCallback(async () => {
+    setIsGlobalView(true)
+    setLocation('')
+    setMapCenter({ lat: 39.8283, lng: -98.5795 }) // Center of US
+    setMapZoom(4)
+
+    // Fetch all published properties without location filter
+    await searchProperties({
+      status: 'published',
+      limit: 5000,
+    })
+  }, [searchProperties])
+
   const handleUseMyLocation = useCallback(async () => {
     try {
       setIsGeolocating(true)
@@ -210,21 +224,24 @@ export default function PropertiesPage() {
           {/* Location Search */}
           <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
             <div className="space-y-4">
-              <div className="relative">
-                <PlacesAutocompleteDropdown
-                  value={location}
-                  onChange={setLocation}
-                  onPlaceSelect={handlePlaceSelect}
-                  placeholder="Search for a City, Neighborhood, street, or point of interest"
-                />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <PlacesAutocompleteDropdown
+                    value={location}
+                    onChange={setLocation}
+                    onPlaceSelect={handlePlaceSelect}
+                    placeholder="Search by city, neighborhood, or address"
+                  />
+                </div>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={handleUseMyLocation}
                   isLoading={isGeolocating}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2"
+                  className="flex-shrink-0 whitespace-nowrap"
                 >
-                  Use My Location
+                  <MapPinIcon className="h-4 w-4 mr-1" />
+                  My Location
                 </Button>
               </div>
 
@@ -244,9 +261,19 @@ export default function PropertiesPage() {
                   )}
                 </Button>
                 <Button
+                  variant={isGlobalView ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={handleGlobalView}
+                  isLoading={isLoading && isGlobalView}
+                  className="flex items-center"
+                >
+                  <GlobeAmericasIcon className="h-5 w-5 mr-2" />
+                  Global View
+                </Button>
+                <Button
                   variant="primary"
-                  onClick={handleSearch}
-                  isLoading={isLoading}
+                  onClick={() => { setIsGlobalView(false); handleSearch() }}
+                  isLoading={isLoading && !isGlobalView}
                   className="flex-1"
                 >
                   Search
@@ -332,6 +359,7 @@ export default function PropertiesPage() {
               <p className="text-sm text-gray-600 mt-4">
                 <span className="font-semibold text-navy">{properties.length}</span>{' '}
                 {properties.length === 1 ? 'property' : 'properties'} found
+                {isGlobalView && <span className="ml-1 text-orange font-medium">(Global View)</span>}
               </p>
             )}
           </div>

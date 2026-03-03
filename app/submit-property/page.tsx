@@ -1,40 +1,6 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { PropertySubmissionForm } from '@/components/forms/PropertySubmissionForm'
-import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 
 export default function SubmitPropertyPage() {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState<any>(null)
-
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session) {
-      router.push('/login?redirect=/submit-property')
-      return
-    }
-
-    setUser(session.user)
-    setIsLoading(false)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}

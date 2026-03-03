@@ -62,6 +62,16 @@ export function Footer() {
                   alt="WERC"
                   className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
                 />
+                <img
+                  src="/images/memberships/iata-logo.webp"
+                  alt="IATA"
+                  className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
+                />
+                <img
+                  src="/images/memberships/gbta-logo.svg"
+                  alt="GBTA"
+                  className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
+                />
               </div>
             </div>
           </div>
@@ -81,8 +91,18 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/submit-housing-request" className="text-gray-300 hover:text-white">
+                  Submit a Housing Request
+                </Link>
+              </li>
+              <li>
                 <Link href="/submit-property" className="text-gray-300 hover:text-white">
                   Submit a Property
+                </Link>
+              </li>
+              <li>
+                <Link href="/submit-request" className="text-gray-300 hover:text-white">
+                  Submit a Request
                 </Link>
               </li>
               <li>
@@ -148,7 +168,7 @@ export function Footer() {
                   (844) 454-2836
                 </a>
               </li>
-              <li>Mon-Fri: 5:00 AM - 5:00 PM PST</li>
+              <li>Mon-Fri: 8:00 AM - 8:00 PM EST</li>
               <li className="text-orange font-medium">Emergency Support Available 24/7</li>
             </ul>
           </div>

@@ -15,7 +15,10 @@ import {
   ChevronDownIcon,
   BuildingLibraryIcon,
   ShieldCheckIcon,
-  BriefcaseIcon
+  BriefcaseIcon,
+  EnvelopeIcon,
+  ClipboardDocumentListIcon,
+  HomeModernIcon,
 } from '@heroicons/react/24/outline'
 
 export function Header() {
@@ -88,12 +91,29 @@ export function Header() {
             >
               Properties
             </Link>
-            <Link
-              href="/contact"
-              className="text-gray-700 hover:text-navy font-medium"
+            {/* Contact Us Dropdown - hover to reveal */}
+            <Dropdown
+              hover
+              trigger={
+                <span className="flex items-center gap-1 text-gray-700 hover:text-navy font-medium transition-colors cursor-pointer">
+                  Contact Us
+                  <ChevronDownIcon className="h-4 w-4" />
+                </span>
+              }
             >
-              Contact
-            </Link>
+              <HoverDropdownLink href="/submit-housing-request" icon={ClipboardDocumentListIcon}>
+                Submit a Housing Request
+              </HoverDropdownLink>
+              <HoverDropdownLink href="/submit-property" icon={HomeModernIcon}>
+                Submit a Property
+              </HoverDropdownLink>
+              <HoverDropdownLink href="/submit-request" icon={DocumentTextIcon}>
+                Submit a Request
+              </HoverDropdownLink>
+              <HoverDropdownLink href="/contact" icon={EnvelopeIcon}>
+                Send Us a Message
+              </HoverDropdownLink>
+            </Dropdown>
             <Link
               href="/submit-property"
               className="text-orange hover:text-orange-600 font-medium"

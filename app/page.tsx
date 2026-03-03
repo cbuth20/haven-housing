@@ -360,9 +360,9 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8 text-center">
+          <div className="grid md:grid-cols-5 gap-8 text-center">
             <div>
-              <div className="text-4xl font-heading font-bold text-navy mb-2">500+</div>
+              <div className="text-4xl font-heading font-bold text-navy mb-2">3k+</div>
               <div className="text-gray-600">Properties Listed</div>
             </div>
             <div>
@@ -374,7 +374,11 @@ export default function Home() {
               <div className="text-gray-600">Client Satisfaction</div>
             </div>
             <div>
-              <div className="text-4xl font-heading font-bold text-navy mb-2">15+</div>
+              <div className="text-4xl font-heading font-bold text-navy mb-2">20+</div>
+              <div className="text-gray-600">Countries Coverage</div>
+            </div>
+            <div>
+              <div className="text-4xl font-heading font-bold text-navy mb-2">30+</div>
               <div className="text-gray-600">Years Experience</div>
             </div>
           </div>
