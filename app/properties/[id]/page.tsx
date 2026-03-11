@@ -8,6 +8,7 @@ import { MapView } from '@/components/maps/MapView'
 import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
 import { BackToSearchButton } from '@/components/property/BackToSearchButton'
+import { PropertyAddressHeading } from '@/components/property/PropertyAddress'
 import { formatCurrency } from '@/lib/utils'
 import { extractPlainText } from '@/lib/property-utils'
 import {
@@ -93,12 +94,15 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
             <div className="bg-white rounded-lg shadow-md p-6">
               <div className="flex items-start justify-between mb-6">
                 <div>
-                  <h1 className="text-3xl font-heading font-bold text-navy mb-2">
-                    {streetAddress}
-                  </h1>
+                  <PropertyAddressHeading
+                    streetAddress={streetAddress}
+                    city={city}
+                    state={state}
+                    zipCode={zipCode}
+                  />
                   <div className="flex items-center text-gray-600 mb-4">
                     <MapPinIcon className="h-5 w-5 mr-2" />
-                    <span>{city}, {state} {zipCode}</span>
+                    <span>{city}, {state}</span>
                   </div>
                 </div>
                 {property.featured && (
@@ -217,9 +221,9 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="lg:sticky lg:top-4 space-y-6">
             {/* Request to Book Card */}
-            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+            <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-heading font-bold text-navy mb-4">
                 Interested in This Property?
               </h2>
@@ -237,9 +241,9 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                   href={property.listing_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mt-3"
+                  className="flex items-center justify-center gap-2 p-2 text-sm bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mt-3"
                 >
-                  <LinkIcon className="h-5 w-5 text-navy" />
+                  <LinkIcon className="h-4 w-4 text-navy" />
                   <span className="text-gray-900">View Original Listing</span>
                 </a>
               )}
@@ -248,8 +252,8 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
             {/* Share */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h3 className="font-semibold text-gray-900 mb-3">Share this property</h3>
-              <Button variant="outline" className="w-full">
-                <ShareIcon className="h-5 w-5 mr-2" />
+              <Button variant="outline" size="sm" className="w-full flex items-center justify-center">
+                <ShareIcon className="h-4 w-4 mr-2 flex-shrink-0" />
                 Share
               </Button>
             </div>

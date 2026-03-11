@@ -1,6 +1,7 @@
 import { Handler } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 import { createSalesforceClient } from './utils/salesforce-client'
+import { sendFormNotification } from './utils/notification-service'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -103,6 +104,33 @@ export const handler: Handler = async (event) => {
           .eq('id', formRecord.id)
       }
     }
+
+    // Send notification email (non-blocking)
+    sendFormNotification(
+      'property',
+      'Property Submission',
+      `New Property Submission: ${data.title} — ${data.city}, ${data.state}`,
+      {
+        'Submitter Name': data.submitterName,
+        'Submitter Email': data.submitterEmail,
+        'Submitter Phone': data.submitterPhone,
+        'Property Title': data.title,
+        'Address': `${data.streetAddress}, ${data.city}, ${data.state} ${data.zipCode}`,
+        'Monthly Rent': `$${data.monthlyRent}`,
+        'Beds / Baths': `${data.beds} bed / ${data.baths} bath`,
+        'Square Footage': data.squareFootage || 'N/A',
+        'Pet Policy': data.petPolicy,
+        'Furnishing': data.furnishLevel || 'N/A',
+        'Parking': data.parking || 'N/A',
+        'Laundry': data.laundry || 'N/A',
+        'Listing Link': data.listingLink || 'N/A',
+        'Description': data.description,
+        'Landlord Name': data.landlordName,
+        'Landlord Email': data.landlordEmail,
+        'Landlord Phone': data.landlordPhone,
+      },
+      '/admin/submissions'
+    )
 
     return {
       statusCode: 200,

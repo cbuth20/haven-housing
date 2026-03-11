@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,15 +12,13 @@ import { Button } from '@/components/common/Button'
 import { FileUpload } from '@/components/common/FileUpload'
 import { useProperties } from '@/hooks/useProperties'
 
-const propertyFormSchema = z.object({
+const baseSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   street_address: z.string().min(1, 'Street address is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zip_code: z.string().min(1, 'Zip code is required'),
   country: z.string(),
-  latitude: z.number().nullable().optional(),
-  longitude: z.number().nullable().optional(),
   description: z.string().nullable().optional(),
   square_footage: z.number().int().positive().nullable().optional(),
   unit_type: z.string().nullable().optional(),
@@ -31,24 +29,50 @@ const propertyFormSchema = z.object({
   parking: z.string().nullable().optional(),
   furnish_level: z.string().nullable().optional(),
   landlord_name: z.string().nullable().optional(),
-  landlord_email: z.string().email().nullable().optional(),
+  landlord_email: z.string().email().or(z.literal('')).nullable().optional(),
   landlord_phone: z.string().nullable().optional(),
   monthly_rent: z.number().positive().nullable().optional(),
-  listing_link: z.string().url().nullable().optional(),
+  listing_link: z.string().url().or(z.literal('')).nullable().optional(),
   property_level: z.string().nullable().optional(),
+})
+
+const adminSchema = baseSchema.extend({
   featured: z.boolean(),
   status: z.enum(['draft', 'published', 'archived']),
 })
 
-type PropertyFormData = z.infer<typeof propertyFormSchema>
+const submissionSchema = baseSchema.extend({
+  submitter_name: z.string().min(2, 'Name is required'),
+  submitter_email: z.string().email('Invalid email'),
+  submitter_phone: z.string().min(10, 'Phone is required'),
+})
 
-interface PropertyFormProps {
+type AdminFormData = z.infer<typeof adminSchema>
+type SubmissionFormData = z.infer<typeof submissionSchema>
+type PropertyFormData = AdminFormData | SubmissionFormData
+
+interface AdminFormProps {
+  mode?: 'admin'
   property?: Property
   onSuccess: () => void
   onCancel: () => void
 }
 
-export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProps) {
+interface SubmissionFormProps {
+  mode: 'submission'
+  property?: never
+  onSuccess?: () => void
+  onCancel?: () => void
+}
+
+type PropertyFormProps = AdminFormProps | SubmissionFormProps
+
+export function PropertyForm(props: PropertyFormProps) {
+  const { mode = 'admin' } = props
+  const property = mode === 'admin' ? (props as AdminFormProps).property : undefined
+  const onSuccess = props.onSuccess
+  const onCancel = mode === 'admin' ? (props as AdminFormProps).onCancel : undefined
+
   const { createProperty, updateProperty, uploadPhotos, isLoading } = useProperties()
   const [photos, setPhotos] = useState<File[]>([])
   const [existingPhotos, setExistingPhotos] = useState<string[]>(
@@ -58,35 +82,75 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
     property?.cover_photo_url || null
   )
   const [isUploading, setIsUploading] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  const schema = mode === 'admin' ? adminSchema : submissionSchema
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-  } = useForm<PropertyFormData>({
-    resolver: zodResolver(propertyFormSchema),
+    reset,
+  } = useForm<any>({
+    resolver: zodResolver(schema),
     defaultValues: property || {
-      status: 'draft',
-      featured: false,
+      ...(mode === 'admin' ? { status: 'draft', featured: false } : {}),
       country: 'USA',
     },
   })
 
-  const onSubmit = async (data: PropertyFormData) => {
+  const onSubmit = async (data: any) => {
     try {
       setIsUploading(true)
+      setSubmitError(null)
 
-      // Upload new photos if any
+      if (mode === 'submission') {
+        // Submit as a property submission for review
+        const submissionData = {
+          submitterName: data.submitter_name,
+          submitterEmail: data.submitter_email,
+          submitterPhone: data.submitter_phone,
+          title: data.title,
+          streetAddress: data.street_address,
+          city: data.city,
+          state: data.state,
+          zipCode: data.zip_code,
+          description: data.description || '',
+          monthlyRent: data.monthly_rent ? String(data.monthly_rent) : '',
+          beds: data.beds ? String(data.beds) : '',
+          baths: data.baths ? String(data.baths) : '',
+          squareFootage: data.square_footage ? String(data.square_footage) : '',
+          petPolicy: data.pet_policy || '',
+          parking: data.parking || '',
+          laundry: data.laundry || '',
+          furnishLevel: data.furnish_level || '',
+          listingLink: data.listing_link || '',
+          landlordName: data.landlord_name || '',
+          landlordEmail: data.landlord_email || '',
+          landlordPhone: data.landlord_phone || '',
+        }
+
+        const response = await fetch('/.netlify/functions/property-submission-create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(submissionData),
+        })
+
+        if (!response.ok) throw new Error('Failed to submit property')
+
+        setSubmitSuccess(true)
+        reset()
+        return
+      }
+
+      // Admin mode: direct database operation
       let uploadedUrls: string[] = []
       if (photos.length > 0) {
         uploadedUrls = await uploadPhotos(photos)
       }
 
-      // Combine existing and new photos
       const allPhotoUrls = [...existingPhotos, ...uploadedUrls]
-
-      // Set cover photo (first photo if not set)
       const finalCoverPhoto = coverPhotoUrl || allPhotoUrls[0] || null
 
       const propertyData = {
@@ -95,8 +159,6 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         baths: data.baths ? Number(data.baths) : null,
         square_footage: data.square_footage ? Number(data.square_footage) : null,
         monthly_rent: data.monthly_rent ? Number(data.monthly_rent) : null,
-        latitude: data.latitude ? Number(data.latitude) : null,
-        longitude: data.longitude ? Number(data.longitude) : null,
         cover_photo_url: finalCoverPhoto,
         media_gallery_urls: allPhotoUrls,
       }
@@ -107,9 +169,10 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         await createProperty(propertyData)
       }
 
-      onSuccess()
-    } catch (error) {
+      onSuccess?.()
+    } catch (error: any) {
       console.error('Error saving property:', error)
+      setSubmitError(error.message || 'Failed to save property')
     } finally {
       setIsUploading(false)
     }
@@ -208,8 +271,59 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
     { value: 'Fully Furnished', label: 'Fully Furnished' },
   ]
 
+  if (submitSuccess) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-8 text-center">
+        <h3 className="text-2xl font-heading font-bold text-green-900 mb-2">
+          Property Submitted!
+        </h3>
+        <p className="text-green-800 mb-4">
+          Thank you for submitting your property. Our team will review it and contact you within 48 hours.
+        </p>
+        <Button variant="outline" onClick={() => setSubmitSuccess(false)}>
+          Submit Another Property
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{submitError}</p>
+        </div>
+      )}
+
+      {/* Submitter Information (submission mode only) */}
+      {mode === 'submission' && (
+        <div>
+          <h3 className="text-lg font-semibold text-navy mb-4">Your Contact Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Input
+              label="Your Name"
+              {...register('submitter_name')}
+              error={errors.submitter_name?.message as string}
+              required
+            />
+            <Input
+              label="Your Email"
+              type="email"
+              {...register('submitter_email')}
+              error={errors.submitter_email?.message as string}
+              required
+            />
+            <Input
+              label="Your Phone"
+              type="tel"
+              {...register('submitter_phone')}
+              error={errors.submitter_phone?.message as string}
+              required
+            />
+          </div>
+        </div>
+      )}
+
       {/* Basic Information */}
       <div>
         <h3 className="text-lg font-semibold text-navy mb-4">Basic Information</h3>
@@ -218,7 +332,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             <Input
               label="Property Title"
               {...register('title')}
-              error={errors.title?.message}
+              error={errors.title?.message as string}
               required
               placeholder="Beautiful 2BR Apartment in Downtown"
             />
@@ -227,7 +341,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Input
             label="Street Address"
             {...register('street_address')}
-            error={errors.street_address?.message}
+            error={errors.street_address?.message as string}
             required
             placeholder="123 Main St, Apt 4B"
           />
@@ -235,7 +349,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Input
             label="City"
             {...register('city')}
-            error={errors.city?.message}
+            error={errors.city?.message as string}
             required
             placeholder="Austin"
           />
@@ -243,7 +357,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Select
             label="State"
             {...register('state')}
-            error={errors.state?.message}
+            error={errors.state?.message as string}
             options={stateOptions}
             required
           />
@@ -251,7 +365,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Input
             label="Zip Code"
             {...register('zip_code')}
-            error={errors.zip_code?.message}
+            error={errors.zip_code?.message as string}
             required
             placeholder="78701"
           />
@@ -260,7 +374,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             <Textarea
               label="Description"
               {...register('description')}
-              error={errors.description?.message}
+              error={errors.description?.message as string}
               placeholder="Describe the property..."
               rows={4}
             />
@@ -276,7 +390,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             label="Bedrooms"
             type="number"
             {...register('beds', { valueAsNumber: true })}
-            error={errors.beds?.message}
+            error={errors.beds?.message as string}
             min="0"
             placeholder="2"
           />
@@ -286,7 +400,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             type="number"
             step="0.5"
             {...register('baths', { valueAsNumber: true })}
-            error={errors.baths?.message}
+            error={errors.baths?.message as string}
             min="0"
             placeholder="2"
           />
@@ -295,7 +409,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             label="Square Footage"
             type="number"
             {...register('square_footage', { valueAsNumber: true })}
-            error={errors.square_footage?.message}
+            error={errors.square_footage?.message as string}
             min="0"
             placeholder="1200"
           />
@@ -303,7 +417,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Input
             label="Unit Type"
             {...register('unit_type')}
-            error={errors.unit_type?.message}
+            error={errors.unit_type?.message as string}
             placeholder="Apartment, House, Condo"
           />
 
@@ -312,7 +426,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             type="number"
             step="0.01"
             {...register('monthly_rent', { valueAsNumber: true })}
-            error={errors.monthly_rent?.message}
+            error={errors.monthly_rent?.message as string}
             min="0"
             placeholder="2500"
           />
@@ -326,28 +440,28 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Select
             label="Pet Policy"
             {...register('pet_policy')}
-            error={errors.pet_policy?.message}
+            error={errors.pet_policy?.message as string}
             options={petPolicyOptions}
           />
 
           <Select
             label="Laundry"
             {...register('laundry')}
-            error={errors.laundry?.message}
+            error={errors.laundry?.message as string}
             options={laundryOptions}
           />
 
           <Select
             label="Parking"
             {...register('parking')}
-            error={errors.parking?.message}
+            error={errors.parking?.message as string}
             options={parkingOptions}
           />
 
           <Select
             label="Furnish Level"
             {...register('furnish_level')}
-            error={errors.furnish_level?.message}
+            error={errors.furnish_level?.message as string}
             options={furnishOptions}
           />
         </div>
@@ -360,7 +474,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
           <Input
             label="Landlord Name"
             {...register('landlord_name')}
-            error={errors.landlord_name?.message}
+            error={errors.landlord_name?.message as string}
             placeholder="John Doe"
           />
 
@@ -368,7 +482,7 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             label="Landlord Email"
             type="email"
             {...register('landlord_email')}
-            error={errors.landlord_email?.message}
+            error={errors.landlord_email?.message as string}
             placeholder="landlord@example.com"
           />
 
@@ -376,10 +490,21 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
             label="Landlord Phone"
             type="tel"
             {...register('landlord_phone')}
-            error={errors.landlord_phone?.message}
+            error={errors.landlord_phone?.message as string}
             placeholder="(555) 123-4567"
           />
         </div>
+      </div>
+
+      {/* Listing Link */}
+      <div>
+        <Input
+          label="Listing Link (Optional)"
+          type="url"
+          {...register('listing_link')}
+          error={errors.listing_link?.message as string}
+          placeholder="https://..."
+        />
       </div>
 
       {/* Photos */}
@@ -395,79 +520,50 @@ export function PropertyForm({ property, onSuccess, onCancel }: PropertyFormProp
         />
       </div>
 
-      {/* Additional Settings */}
-      <div>
-        <h3 className="text-lg font-semibold text-navy mb-4">Settings</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Select
-            label="Status"
-            {...register('status')}
-            error={errors.status?.message}
-            options={statusOptions}
-            required
-          />
-
-          <div className="flex items-center space-x-2 pt-8">
-            <input
-              type="checkbox"
-              {...register('featured')}
-              className="h-4 w-4 text-navy focus:ring-navy border-gray-300 rounded"
+      {/* Admin-only: Status & Featured */}
+      {mode === 'admin' && (
+        <div>
+          <h3 className="text-lg font-semibold text-navy mb-4">Settings</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Select
+              label="Status"
+              {...register('status')}
+              error={(errors as any).status?.message}
+              options={statusOptions}
+              required
             />
-            <label className="text-sm font-medium text-gray-700">
-              Featured Property
-            </label>
+
+            <div className="flex items-center space-x-2 pt-8">
+              <input
+                type="checkbox"
+                {...register('featured')}
+                className="h-4 w-4 text-navy focus:ring-navy border-gray-300 rounded"
+              />
+              <label className="text-sm font-medium text-gray-700">
+                Featured Property
+              </label>
+            </div>
           </div>
-
-          <Input
-            label="Listing Link (Optional)"
-            type="url"
-            {...register('listing_link')}
-            error={errors.listing_link?.message}
-            placeholder="https://..."
-          />
         </div>
-      </div>
-
-      {/* Geolocation */}
-      <div>
-        <h3 className="text-lg font-semibold text-navy mb-4">
-          Geolocation (Optional)
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Input
-            label="Latitude"
-            type="number"
-            step="any"
-            {...register('latitude', { valueAsNumber: true })}
-            error={errors.latitude?.message}
-            placeholder="30.2672"
-          />
-
-          <Input
-            label="Longitude"
-            type="number"
-            step="any"
-            {...register('longitude', { valueAsNumber: true })}
-            error={errors.longitude?.message}
-            placeholder="-97.7431"
-          />
-        </div>
-        <p className="text-sm text-gray-500 mt-2">
-          You can use <a href="https://www.latlong.net/" target="_blank" rel="noopener noreferrer" className="text-navy hover:underline">latlong.net</a> to find coordinates
-        </p>
-      </div>
+      )}
 
       {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-6 border-t">
-        <Button type="button" variant="ghost" onClick={onCancel}>
-          Cancel
-        </Button>
+      <div className={`flex ${mode === 'admin' ? 'justify-end' : 'justify-center'} gap-3 pt-6 border-t`}>
+        {mode === 'admin' && onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
         <Button
           type="submit"
           variant="primary"
+          className={mode === 'submission' ? 'w-full' : ''}
           isLoading={isLoading || isUploading}
         >
-          {property ? 'Update Property' : 'Create Property'}
+          {mode === 'admin'
+            ? property ? 'Update Property' : 'Create Property'
+            : 'Submit Property for Review'
+          }
         </Button>
       </div>
     </form>

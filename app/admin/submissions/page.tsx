@@ -57,7 +57,7 @@ export default function SubmissionsPage() {
   }
 
   const handleReject = async (sub: Submission) => {
-    if (!notes || !confirm('Reject?')) return
+    if (!confirm('Reject this submission?')) return
     setIsProcessing(true)
     try {
       await fetch('/.netlify/functions/property-submission-reject', {
@@ -133,14 +133,14 @@ export default function SubmissionsPage() {
                         className="w-full px-3 py-2 border rounded-lg"
                         rows={2}
                       />
-                      <div className="flex gap-2">
-                        <Button variant="primary" onClick={() => handleApprove(sub)} disabled={isProcessing}>
-                          <CheckCircleIcon className="h-5 w-5 mr-2" /> Approve
+                      <div className="flex items-center gap-2">
+                        <Button variant="primary" size="sm" className="flex items-center justify-center" onClick={() => handleApprove(sub)} disabled={isProcessing}>
+                          <CheckCircleIcon className="h-4 w-4 mr-1.5 flex-shrink-0" /> Approve
                         </Button>
-                        <Button variant="ghost" onClick={() => handleReject(sub)} disabled={isProcessing}>
-                          <XCircleIcon className="h-5 w-5 mr-2" /> Reject
+                        <Button variant="danger" size="sm" className="flex items-center justify-center" onClick={() => handleReject(sub)} disabled={isProcessing}>
+                          <XCircleIcon className="h-4 w-4 mr-1.5 flex-shrink-0" /> Reject
                         </Button>
-                        <Button variant="outline" onClick={() => setSelected(null)}>Cancel</Button>
+                        <Button variant="outline" size="sm" className="flex items-center justify-center" onClick={() => setSelected(null)}>Cancel</Button>
                       </div>
                     </>
                   )}

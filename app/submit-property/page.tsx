@@ -1,4 +1,6 @@
-import { PropertySubmissionForm } from '@/components/forms/PropertySubmissionForm'
+'use client'
+
+import { PropertyForm } from '@/components/forms/PropertyForm'
 
 export default function SubmitPropertyPage() {
   return (
@@ -23,14 +25,14 @@ export default function SubmitPropertyPage() {
               Property Submission Guidelines
             </h2>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-2 text-sm text-blue-800">
-              <p>✓ All submissions are reviewed by our team within 48 hours</p>
-              <p>✓ Properties must be available for rent to corporate or insurance clients</p>
-              <p>✓ Accurate property information helps us serve clients better</p>
-              <p>✓ You'll be notified via email once your property is approved</p>
+              <p>All submissions are reviewed by our team within 48 hours</p>
+              <p>Properties must be available for rent to corporate or insurance clients</p>
+              <p>Accurate property information helps us serve clients better</p>
+              <p>You will be notified via email once your property is approved</p>
             </div>
           </div>
 
-          <PropertySubmissionForm />
+          <PropertyForm mode="submission" />
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { HousingRequestForm } from '@/components/forms/HousingRequestForm'
+import { SubmitRequestForm } from '@/components/forms/SubmitRequestForm'
 
 export default function SubmitHousingRequestPage() {
   return (
@@ -10,7 +10,7 @@ export default function SubmitHousingRequestPage() {
             Submit a Housing Request
           </h1>
           <p className="text-xl text-gray-200">
-            Request temporary housing placement for insurance relocation needs.
+            Request temporary housing for corporate and government needs.
           </p>
         </div>
       </div>
@@ -26,7 +26,7 @@ export default function SubmitHousingRequestPage() {
             </div>
           </div>
 
-          <HousingRequestForm />
+          <SubmitRequestForm />
         </div>
       </div>
     </div>

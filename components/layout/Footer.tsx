@@ -101,11 +101,6 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/submit-request" className="text-gray-300 hover:text-white">
-                  Submit a Request
-                </Link>
-              </li>
-              <li>
                 <Link href="/contact" className="text-gray-300 hover:text-white">
                   Contact Us
                 </Link>

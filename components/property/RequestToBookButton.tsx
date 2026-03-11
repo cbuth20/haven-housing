@@ -67,10 +67,11 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
     <>
       <Button
         variant="primary"
-        className="w-full"
+        size="sm"
+        className="w-full flex items-center justify-center"
         onClick={() => setShowModal(true)}
       >
-        <CalendarDaysIcon className="h-5 w-5 mr-2" />
+        <CalendarDaysIcon className="h-4 w-4 mr-2 flex-shrink-0" />
         Request to Book
       </Button>
 

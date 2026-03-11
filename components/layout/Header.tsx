@@ -107,9 +107,6 @@ export function Header() {
               <HoverDropdownLink href="/submit-property" icon={HomeModernIcon}>
                 Submit a Property
               </HoverDropdownLink>
-              <HoverDropdownLink href="/submit-request" icon={DocumentTextIcon}>
-                Submit a Request
-              </HoverDropdownLink>
               <HoverDropdownLink href="/contact" icon={EnvelopeIcon}>
                 Send Us a Message
               </HoverDropdownLink>

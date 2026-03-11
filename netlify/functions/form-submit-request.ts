@@ -1,6 +1,7 @@
 import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { createSalesforceClient } from './utils/salesforce-client'
+import { sendFormNotification } from './utils/notification-service'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -112,6 +113,16 @@ const handler: Handler = async (event) => {
         }
       }
     }
+
+    // Send notification email (non-blocking)
+    const reqFullName = `${body.firstName || ''} ${body.lastName || ''}`.trim()
+    sendFormNotification(
+      'housing-request',
+      'Housing Request',
+      `New Housing Request from ${reqFullName || 'Unknown'} — ${body.companyOrAgency || 'General'}`,
+      body,
+      '/admin'
+    )
 
     return {
       statusCode: 201,

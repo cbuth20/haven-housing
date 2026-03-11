@@ -1,6 +1,7 @@
 import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { createSalesforceClient } from './utils/salesforce-client'
+import { sendFormNotification } from './utils/notification-service'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -110,6 +111,15 @@ const handler: Handler = async (event) => {
         }
       }
     }
+
+    // Send notification email (non-blocking)
+    sendFormNotification(
+      'claims',
+      'Insurance Claim Request',
+      `New Insurance Claim from ${body.firstName || ''} ${body.lastName || ''} — ${body.serviceType || 'General'}`,
+      body,
+      '/admin'
+    )
 
     return {
       statusCode: 201,

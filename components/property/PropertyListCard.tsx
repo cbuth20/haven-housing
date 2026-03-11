@@ -5,6 +5,7 @@ import { HomeIcon, MapPinIcon, CurrencyDollarIcon, CheckBadgeIcon, SparklesIcon 
 import { HomeIcon as HomeIconSolid, SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PropertyListCardProps {
   property: Property
@@ -13,6 +14,7 @@ interface PropertyListCardProps {
 }
 
 export function PropertyListCard({ property, onClick, showDistance = false }: PropertyListCardProps) {
+  const { isAuthenticated } = useAuth()
   const hasImage = !!property.cover_photo_url
 
   // Parse amenities
@@ -90,8 +92,8 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
             <div className="flex items-center gap-1 text-gray-600 mb-3">
               <MapPinIcon className="h-4 w-4 flex-shrink-0" />
               <p className="text-sm truncate">
-                {property.street_address && `${extractPlainText(property.street_address)}, `}
-                {extractPlainText(property.city)}, {extractPlainText(property.state)} {extractPlainText(property.zip_code)}
+                {isAuthenticated && property.street_address && `${extractPlainText(property.street_address)}, `}
+                {extractPlainText(property.city)}, {extractPlainText(property.state)} {!isAuthenticated ? '' : extractPlainText(property.zip_code)}
               </p>
             </div>
 

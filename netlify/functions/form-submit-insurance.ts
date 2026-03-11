@@ -1,6 +1,7 @@
 import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { InsuranceFormSchema } from './utils/validation'
+import { sendFormNotification } from './utils/notification-service'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -41,6 +42,15 @@ const handler: Handler = async (event) => {
     }
 
     // TODO: Trigger Salesforce sync (async)
+
+    // Send notification email (non-blocking)
+    sendFormNotification(
+      'insurance',
+      'Insurance Relocation Request',
+      `New Insurance Relocation Request from ${validatedData.fullName}`,
+      validatedData,
+      '/admin'
+    )
 
     return {
       statusCode: 201,

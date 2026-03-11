@@ -2,6 +2,7 @@ import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { ContactFormSchema } from './utils/validation'
 import { createSalesforceClient } from './utils/salesforce-client'
+import { sendFormNotification } from './utils/notification-service'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -85,6 +86,15 @@ const handler: Handler = async (event) => {
           .eq('id', data.id)
       }
     }
+
+    // Send notification email (non-blocking)
+    sendFormNotification(
+      'contact',
+      'Contact Form Submission',
+      `New Contact Inquiry: ${validatedData.subject}`,
+      validatedData,
+      '/admin'
+    )
 
     return {
       statusCode: 201,

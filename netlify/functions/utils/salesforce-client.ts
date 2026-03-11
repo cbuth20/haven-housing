@@ -127,7 +127,6 @@ export class SalesforceClient {
     if (firstName) leadPayload.FirstName = firstName
     if (data.phone) leadPayload.Phone = data.phone
     if (data.subject) leadPayload.Title = data.subject
-    if (data.message) leadPayload.Description = data.message
 
     const result = await this.request(
       '/services/data/v62.0/sobjects/Lead',

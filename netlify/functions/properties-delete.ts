@@ -21,6 +21,20 @@ const handler: Handler = requireAdmin(async (event) => {
       }
     }
 
+    // Delete related property_submissions first to avoid foreign key constraint
+    const { error: submissionsError } = await supabaseAdmin
+      .from('property_submissions')
+      .delete()
+      .eq('property_id', id)
+
+    if (submissionsError) {
+      console.error('Error deleting related submissions:', submissionsError)
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'Failed to delete related submissions', error: submissionsError.message }),
+      }
+    }
+
     // Delete the property
     const { error } = await supabaseAdmin
       .from('properties')
