@@ -4,8 +4,9 @@ import { useState } from 'react'
 import { Property } from '@/types/property'
 import { PropertyCard } from './PropertyCard'
 import { Button } from '@/components/common/Button'
-import { getPropertyDisplayTitle } from '@/lib/property-utils'
+import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 import { Squares2X2Icon, ListBulletIcon } from '@heroicons/react/24/outline'
+import { useAuth } from '@/hooks/useAuth'
 
 interface PropertyListProps {
   properties: Property[]
@@ -13,6 +14,7 @@ interface PropertyListProps {
 }
 
 export function PropertyList({ properties, onPropertyClick }: PropertyListProps) {
+  const { isAuthenticated } = useAuth()
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   if (properties.length === 0) {
@@ -96,9 +98,10 @@ export function PropertyList({ properties, onPropertyClick }: PropertyListProps)
                   </div>
 
                   <p className="text-gray-600 mb-3">
-                    {property.street_address}
-                    <br />
-                    {property.city}, {property.state} {property.zip_code}
+                    {isAuthenticated && property.street_address && (
+                      <>{extractPlainText(property.street_address)}<br /></>
+                    )}
+                    {extractPlainText(property.city)}, {extractPlainText(property.state)}{isAuthenticated ? ` ${extractPlainText(property.zip_code)}` : ''}
                   </p>
 
                   <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-3">

@@ -14,6 +14,7 @@ interface MapViewProps {
   zoom?: number
   onMarkerClick?: (property: Property) => void
   className?: string
+  isAuthenticated?: boolean
 }
 
 export const MapView = memo(function MapView({
@@ -22,6 +23,7 @@ export const MapView = memo(function MapView({
   zoom = 4,
   onMarkerClick,
   className = 'w-full h-96',
+  isAuthenticated = false,
 }: MapViewProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
@@ -130,8 +132,8 @@ export const MapView = memo(function MapView({
             }
             <h3 style="font-weight: bold; font-size: 16px; margin-bottom: 6px; color: #063665;">${displayTitle}</h3>
             <p style="color: #666; font-size: 14px; margin-bottom: 8px;">
-              ${property.street_address ? `${property.street_address}<br/>` : ''}
-              ${property.city}, ${property.state} ${property.zip_code}
+              ${isAuthenticated && property.street_address ? `${property.street_address}<br/>` : ''}
+              ${property.city}, ${property.state}${isAuthenticated ? ` ${property.zip_code}` : ''}
             </p>
             ${
               property.beds || property.baths || property.square_footage

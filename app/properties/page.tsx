@@ -11,6 +11,7 @@ import { usePropertySearch } from '@/hooks/usePropertySearch'
 import { Property } from '@/types/property'
 import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
+import { useAuth } from '@/hooks/useAuth'
 import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
 import { formatCurrency } from '@/lib/utils'
 
@@ -18,6 +19,7 @@ const LA_CENTER = { lat: 34.0522, lng: -118.2437 }
 
 export default function PropertiesPage() {
   const router = useRouter()
+  const { isAuthenticated } = useAuth()
   const { properties, isLoading, error, searchProperties } = usePropertySearch()
   const [mapCenter, setMapCenter] = useState(LA_CENTER)
   const [mapZoom, setMapZoom] = useState(10)
@@ -409,6 +411,7 @@ export default function PropertiesPage() {
               zoom={mapZoom}
               onMarkerClick={handleMarkerClick}
               className="w-full h-full"
+              isAuthenticated={isAuthenticated}
             />
           </div>
         </div>

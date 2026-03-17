@@ -17,7 +17,7 @@ export function BackToSearchButton() {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleBack}>
+    <Button variant="ghost" size="sm" onClick={handleBack} className="flex items-center">
       <ArrowLeftIcon className="h-4 w-4 mr-2" />
       Back to Search
     </Button>
