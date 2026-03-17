@@ -178,8 +178,8 @@ export default function CorporatePage() {
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-navy to-navy-700 text-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 mb-6">
-            <BriefcaseIcon className="h-12 w-12" />
+          <div className="mb-6">
+            <BriefcaseIcon className="h-12 w-12 mb-4" />
             <h1 className="text-4xl md:text-5xl font-heading font-bold">
               Corporate Housing That Works as Hard as Your Team
             </h1>
