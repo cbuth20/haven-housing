@@ -70,12 +70,12 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-heading font-bold text-navy mb-2">Profile Settings</h1>
-      <p className="text-gray-600 mb-8">Manage your account settings and preferences</p>
+      <h1 className="text-xl font-heading font-bold text-navy mb-2">Profile Settings</h1>
+      <p className="text-gray-600 mb-5">Manage your account settings and preferences</p>
 
       {/* Account Information */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Information</h2>
+      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Account Information</h2>
         <div className="space-y-3">
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -93,8 +93,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Change Password</h2>
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Change Password</h2>
 
         <form onSubmit={handleChangePassword} className="space-y-4">
           <Input

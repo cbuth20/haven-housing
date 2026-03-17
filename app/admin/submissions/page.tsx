@@ -74,9 +74,9 @@ export default function SubmissionsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-5">
       <div>
-        <h1 className="text-3xl font-heading font-bold text-navy">Property Submissions</h1>
+        <h1 className="text-xl font-heading font-bold text-navy">Property Submissions</h1>
         <p className="text-gray-600 mt-2">Review property submissions</p>
       </div>
 
@@ -91,16 +91,16 @@ export default function SubmissionsPage() {
       {isLoading ? (
         <LoadingSpinner size="lg" />
       ) : submissions.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-md p-12 text-center">
+        <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <p className="text-gray-500">No submissions</p>
         </div>
       ) : (
         <div className="space-y-4">
           {submissions.map((sub) => (
-            <div key={sub.id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={sub.id} className="bg-white rounded-lg shadow-md p-4">
               <div className="flex justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-navy">{sub.submission_data.title}</h3>
+                  <h3 className="text-base font-bold text-navy">{sub.submission_data.title}</h3>
                   <p className="text-gray-600">{sub.submission_data.city}, {sub.submission_data.state}</p>
                 </div>
                 <span className={`px-2 py-1 rounded text-xs font-semibold ${

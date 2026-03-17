@@ -322,19 +322,19 @@ export default function PropertiesPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-navy">
+          <h1 className="text-xl font-heading font-bold text-navy">
             Properties
           </h1>
           <p className="text-gray-600 mt-1">
             <span className="font-semibold text-navy">{stats.total.toLocaleString()}</span> total properties in database
           </p>
         </div>
-        <Button variant="primary" onClick={handleCreateNew}>
-          <PlusIcon className="h-5 w-5 mr-2" />
+        <Button variant="primary" size="sm" onClick={handleCreateNew}>
+          <PlusIcon className="h-4 w-4 mr-2" />
           Add Property
         </Button>
       </div>
@@ -348,7 +348,7 @@ export default function PropertiesPage() {
           }`}
         >
           <p className="text-sm text-gray-600">Total</p>
-          <p className="text-2xl font-bold text-navy">{stats.total.toLocaleString()}</p>
+          <p className="text-xl font-bold text-navy">{stats.total.toLocaleString()}</p>
         </button>
         <button
           onClick={() => setStatusFilter('published')}
@@ -357,7 +357,7 @@ export default function PropertiesPage() {
           }`}
         >
           <p className="text-sm text-gray-600">Published</p>
-          <p className="text-2xl font-bold text-green-600">{stats.published.toLocaleString()}</p>
+          <p className="text-xl font-bold text-green-600">{stats.published.toLocaleString()}</p>
         </button>
         <button
           onClick={() => setStatusFilter('draft')}
@@ -366,7 +366,7 @@ export default function PropertiesPage() {
           }`}
         >
           <p className="text-sm text-gray-600">Draft</p>
-          <p className="text-2xl font-bold text-gray-600">{stats.draft.toLocaleString()}</p>
+          <p className="text-xl font-bold text-gray-600">{stats.draft.toLocaleString()}</p>
         </button>
         <button
           onClick={() => setStatusFilter('archived')}
@@ -375,7 +375,7 @@ export default function PropertiesPage() {
           }`}
         >
           <p className="text-sm text-gray-600">Archived</p>
-          <p className="text-2xl font-bold text-red-600">{stats.archived.toLocaleString()}</p>
+          <p className="text-xl font-bold text-red-600">{stats.archived.toLocaleString()}</p>
         </button>
       </div>
 

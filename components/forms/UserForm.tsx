@@ -7,18 +7,21 @@ import { z } from 'zod'
 import { Input } from '@/components/common/Input'
 import { Select } from '@/components/common/Select'
 import { Button } from '@/components/common/Button'
-import { useUsers, CreateUserInput } from '@/hooks/useUsers'
+import { useUsers } from '@/hooks/useUsers'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 
 const userFormSchema = z.object({
   full_name: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   role: z.enum(['admin', 'client']),
-  temporary_password: z.string()
+  use_temp_password: z.boolean(),
+  temp_password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase letter')
     .regex(/[a-z]/, 'Must contain lowercase letter')
     .regex(/[0-9]/, 'Must contain number')
+    .optional()
+    .or(z.literal('')),
 })
 
 type UserFormData = z.infer<typeof userFormSchema>
@@ -36,20 +39,28 @@ export function UserForm({ onSuccess, onCancel }: UserFormProps) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
       role: 'client',
+      use_temp_password: false,
     },
   })
+
+  const useTempPassword = watch('use_temp_password')
 
   const onSubmit = async (data: UserFormData) => {
     try {
       setSubmitError(null)
-      console.log('Submitting user data:', { ...data, temporary_password: '[REDACTED]' })
-      const result = await createUser(data)
-      console.log('User created successfully:', result)
+      await createUser({
+        email: data.email,
+        full_name: data.full_name,
+        role: data.role,
+        use_temp_password: data.use_temp_password,
+        temp_password: data.use_temp_password ? data.temp_password : undefined,
+      })
       onSuccess()
     } catch (error: any) {
       console.error('Error creating user:', error)
@@ -58,7 +69,7 @@ export function UserForm({ onSuccess, onCancel }: UserFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {/* Full Name */}
       <div>
         <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">
@@ -85,7 +96,9 @@ export function UserForm({ onSuccess, onCancel }: UserFormProps) {
           placeholder="john.doe@example.com"
         />
         <p className="mt-1 text-xs text-gray-500">
-          User will receive login credentials at this email
+          {useTempPassword
+            ? 'User will receive login credentials at this email'
+            : 'User will receive a sign-in link at this email'}
         </p>
       </div>
 
@@ -108,48 +121,64 @@ export function UserForm({ onSuccess, onCancel }: UserFormProps) {
         </p>
       </div>
 
-      {/* Temporary Password */}
-      <div>
-        <label htmlFor="temporary_password" className="block text-sm font-medium text-gray-700 mb-1">
-          Temporary Password <span className="text-red-500">*</span>
+      {/* Temp Password Toggle */}
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="use_temp_password"
+          {...register('use_temp_password')}
+          className="h-4 w-4 rounded border-gray-300 text-navy focus:ring-navy"
+        />
+        <label htmlFor="use_temp_password" className="text-sm text-gray-700">
+          Use temporary password instead of magic link
         </label>
-        <div className="relative">
-          <Input
-            id="temporary_password"
-            type={showPassword ? 'text' : 'password'}
-            {...register('temporary_password')}
-            error={errors.temporary_password?.message}
-            placeholder="Enter temporary password"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            {showPassword ? (
-              <EyeSlashIcon className="h-5 w-5" />
-            ) : (
-              <EyeIcon className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Must be 8+ characters with uppercase, lowercase, and number
-        </p>
       </div>
+
+      {/* Temporary Password (shown only when toggle is on) */}
+      {useTempPassword && (
+        <div>
+          <label htmlFor="temp_password" className="block text-sm font-medium text-gray-700 mb-1">
+            Temporary Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <Input
+              id="temp_password"
+              type={showPassword ? 'text' : 'password'}
+              {...register('temp_password')}
+              error={errors.temp_password?.message}
+              placeholder="Enter temporary password"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          <p className="mt-1 text-xs text-gray-500">
+            Must be 8+ characters with uppercase, lowercase, and number
+          </p>
+        </div>
+      )}
 
       {/* Submit Error */}
       {submitError && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
           {submitError}
         </div>
       )}
 
       {/* Form Actions */}
-      <div className="flex items-center justify-end gap-3 pt-4">
+      <div className="flex items-center justify-end gap-3 pt-3">
         <Button
           type="button"
           variant="ghost"
+          size="sm"
           onClick={onCancel}
           disabled={isLoading}
         >
@@ -158,10 +187,11 @@ export function UserForm({ onSuccess, onCancel }: UserFormProps) {
         <Button
           type="submit"
           variant="primary"
+          size="sm"
           isLoading={isLoading}
           disabled={isLoading}
         >
-          Create User
+          {useTempPassword ? 'Create User' : 'Send Invitation'}
         </Button>
       </div>
     </form>

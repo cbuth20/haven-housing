@@ -121,10 +121,10 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="max-w-6xl mx-auto space-y-5">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-heading font-bold text-navy">Dashboard</h1>
+        <h1 className="text-xl font-heading font-bold text-navy">Dashboard</h1>
         <p className="text-gray-600 mt-2">
           Welcome back! Here's an overview of your property management system.
         </p>
@@ -138,19 +138,19 @@ export default function AdminDashboard() {
             <Link
               key={stat.title}
               href={stat.href}
-              className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+              className="bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
                     {stat.title}
                   </p>
-                  <p className="text-3xl font-bold text-navy mt-2">
+                  <p className="text-2xl font-bold text-navy mt-1">
                     {stat.value}
                   </p>
                 </div>
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <Icon className="h-8 w-8 text-white" />
+                <div className={`${stat.color} p-2 rounded-lg`}>
+                  <Icon className="h-5 w-5 text-white" />
                 </div>
               </div>
             </Link>
@@ -159,8 +159,8 @@ export default function AdminDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-xl font-heading font-bold text-navy mb-4">
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <h2 className="text-base font-heading font-bold text-navy mb-4">
           Quick Actions
         </h2>
         <div className="flex flex-wrap gap-3">
@@ -177,9 +177,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Properties */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white rounded-lg shadow-md p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-heading font-bold text-navy">
+          <h2 className="text-base font-heading font-bold text-navy">
             Recent Properties
           </h2>
           <Link href="/admin/properties">

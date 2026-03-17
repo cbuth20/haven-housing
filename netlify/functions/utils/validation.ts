@@ -98,11 +98,16 @@ export const CreateUserSchema = z.object({
   email: z.string().email('Invalid email address'),
   full_name: z.string().min(1, 'Full name is required'),
   role: z.enum(['admin', 'client']),
-  temporary_password: z.string()
+  use_temp_password: z.boolean().optional().default(false),
+  temp_password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .regex(/[A-Z]/, 'Must contain uppercase letter')
     .regex(/[a-z]/, 'Must contain lowercase letter')
     .regex(/[0-9]/, 'Must contain number')
-})
+    .optional(),
+}).refine(
+  (data) => !data.use_temp_password || (data.use_temp_password && data.temp_password),
+  { message: 'Temporary password is required when use_temp_password is true', path: ['temp_password'] }
+)
 
 export type CreateUserInput = z.infer<typeof CreateUserSchema>

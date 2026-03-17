@@ -131,11 +131,11 @@ export default function UsersPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-5">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-navy">
+          <h1 className="text-xl font-heading font-bold text-navy">
             User Management
           </h1>
           <p className="text-gray-600 mt-2">
@@ -144,9 +144,10 @@ export default function UsersPage() {
         </div>
         <Button
           variant="primary"
+          size="sm"
           onClick={handleCreateNew}
         >
-          <PlusIcon className="h-5 w-5 mr-2" />
+          <PlusIcon className="h-4 w-4 mr-2" />
           Add User
         </Button>
       </div>

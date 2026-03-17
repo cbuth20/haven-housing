@@ -6,6 +6,7 @@ export interface UserProfile {
   email: string
   full_name: string | null
   role: 'admin' | 'client'
+  is_onboarded: boolean
   created_at: string
   updated_at: string
 }
@@ -14,7 +15,8 @@ export interface CreateUserInput {
   email: string
   full_name: string
   role: 'admin' | 'client'
-  temporary_password: string
+  use_temp_password?: boolean
+  temp_password?: string
 }
 
 export function useUsers() {

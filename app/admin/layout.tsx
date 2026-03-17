@@ -31,6 +31,11 @@ export default function AdminLayout({
       console.log('❌ Not admin, redirecting to login')
       router.push('/login')
     }
+    // Redirect to onboarding if user hasn't completed setup
+    if (!isLoading && user && !user.is_onboarded) {
+      console.log('🔄 User not onboarded, redirecting to /onboard')
+      router.push('/onboard')
+    }
   }, [isLoading, isAdmin, router, user])
 
   if (isLoading) {
@@ -41,7 +46,7 @@ export default function AdminLayout({
     )
   }
 
-  if (!isAdmin) {
+  if (!isAdmin || (user && !user.is_onboarded)) {
     return null
   }
 
