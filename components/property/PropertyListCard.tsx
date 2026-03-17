@@ -76,7 +76,7 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
               <h3 className="text-lg font-semibold text-navy group-hover:text-orange transition-colors line-clamp-1 flex-1">
-                {getPropertyDisplayTitle(property)}
+                {isAuthenticated ? getPropertyDisplayTitle(property) : `${extractPlainText(property.city)}, ${extractPlainText(property.state)}`}
               </h3>
               {property.monthly_rent && (
                 <div className="flex-shrink-0">

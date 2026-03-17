@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase'
 import { Property } from '@/types/property'
 import { PropertyGallery } from '@/components/property/PropertyGallery'
@@ -9,11 +8,11 @@ import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
 import { BackToSearchButton } from '@/components/property/BackToSearchButton'
 import { PropertyAddressHeading } from '@/components/property/PropertyAddress'
+import { SimilarPropertyCard } from '@/components/property/SimilarPropertyCard'
 import { formatCurrency } from '@/lib/utils'
 import { extractPlainText } from '@/lib/property-utils'
 import {
   MapPinIcon,
-  HomeIcon,
   LinkIcon,
   ShareIcon,
 } from '@heroicons/react/24/outline'
@@ -268,38 +267,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {similarProperties.map((similar) => (
-                <Link
-                  key={similar.id}
-                  href={`/properties/${similar.id}`}
-                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  <div className="h-48 bg-gray-200">
-                    {similar.cover_photo_url ? (
-                      <img
-                        src={similar.cover_photo_url}
-                        alt={extractPlainText(similar.street_address)}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <HomeIcon className="h-12 w-12 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
-                      {extractPlainText(similar.street_address)}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      {extractPlainText(similar.city)}, {extractPlainText(similar.state)}
-                    </p>
-                    {similar.monthly_rent && (
-                      <p className="text-lg font-bold text-navy">
-                        {formatCurrency(similar.monthly_rent)}/mo
-                      </p>
-                    )}
-                  </div>
-                </Link>
+                <SimilarPropertyCard key={similar.id} property={similar} />
               ))}
             </div>
           </div>

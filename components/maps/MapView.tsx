@@ -111,7 +111,9 @@ export const MapView = memo(function MapView({
         lat: Number(property.latitude),
         lng: Number(property.longitude),
       }
-      const displayTitle = getPropertyDisplayTitle(property)
+      const displayTitle = isAuthenticated
+        ? getPropertyDisplayTitle(property)
+        : `${property.city}, ${property.state}`
 
       const marker = new google.maps.Marker({
         position,
