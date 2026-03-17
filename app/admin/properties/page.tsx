@@ -334,7 +334,6 @@ export default function PropertiesPage() {
           </p>
         </div>
         <Button variant="primary" size="sm" onClick={handleCreateNew}>
-          <PlusIcon className="h-4 w-4 mr-2" />
           Add Property
         </Button>
       </div>

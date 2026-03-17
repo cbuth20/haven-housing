@@ -163,15 +163,15 @@ export default function AdminDashboard() {
         <h2 className="text-base font-heading font-bold text-navy mb-4">
           Quick Actions
         </h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2">
           <Link href="/admin/properties">
-            <Button variant="primary">Add New Property</Button>
+            <Button variant="primary" size="sm">Add New Property</Button>
           </Link>
           <Link href="/admin/submissions">
-            <Button variant="outline">Review Submissions</Button>
+            <Button variant="outline" size="sm">Review Submissions</Button>
           </Link>
           <Link href="/admin/users">
-            <Button variant="ghost">Manage Users</Button>
+            <Button variant="outline" size="sm">Manage Users</Button>
           </Link>
         </div>
       </div>
