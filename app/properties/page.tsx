@@ -35,6 +35,7 @@ export default function PropertiesPage() {
   const [petFriendly, setPetFriendly] = useState('all')
   const [isGeolocating, setIsGeolocating] = useState(false)
   const [isGlobalView, setIsGlobalView] = useState(false)
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null)
 
   // Stable ref for searchProperties so the mount effect doesn't go stale
   const searchRef = useRef(searchProperties)
@@ -106,6 +107,7 @@ export default function PropertiesPage() {
 
           setMapCenter(coords)
           setMapZoom(11)
+          setSelectedCoords(coords)
 
           // Auto-trigger search when place is selected
           const filters: SearchFilters = {
@@ -134,6 +136,12 @@ export default function PropertiesPage() {
       radius: Number(radius),
     }
 
+    // Include coordinates from last place selection if available
+    if (selectedCoords) {
+      filters.lat = selectedCoords.lat
+      filters.lng = selectedCoords.lng
+    }
+
     if (minBeds) filters.minBeds = Number(minBeds)
     if (minBaths) filters.minBaths = Number(minBaths)
     if (maxRent) filters.maxRent = Number(maxRent)
@@ -142,7 +150,7 @@ export default function PropertiesPage() {
     }
 
     await searchProperties(filters)
-  }, [location, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
+  }, [location, selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
 
   const handleGlobalView = useCallback(async () => {
     setIsGlobalView(true)
@@ -173,6 +181,7 @@ export default function PropertiesPage() {
 
       setMapCenter({ lat: coords.lat, lng: coords.lng })
       setMapZoom(11)
+      setSelectedCoords({ lat: coords.lat, lng: coords.lng })
 
       await searchProperties({
         lat: coords.lat,
@@ -230,7 +239,10 @@ export default function PropertiesPage() {
                 <div className="flex-1">
                   <PlacesAutocompleteDropdown
                     value={location}
-                    onChange={setLocation}
+                    onChange={(val) => {
+                      setLocation(val)
+                      setSelectedCoords(null)
+                    }}
                     onPlaceSelect={handlePlaceSelect}
                     placeholder="Search by city, neighborhood, or address"
                   />
