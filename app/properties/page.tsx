@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { SearchFilters } from '@/components/property/PropertyFilters'
 import { PlacesAutocompleteDropdown } from '@/components/property/PlacesAutocompleteDropdown'
 import { MapView } from '@/components/maps/MapView'
@@ -17,76 +17,142 @@ import { formatCurrency } from '@/lib/utils'
 
 const LA_CENTER = { lat: 34.0522, lng: -118.2437 }
 
-export default function PropertiesPage() {
+function PropertiesPageInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
   const { properties, isLoading, error, searchProperties } = usePropertySearch()
   const [mapCenter, setMapCenter] = useState(LA_CENTER)
   const [mapZoom, setMapZoom] = useState(10)
   const [initialLoadDone, setInitialLoadDone] = useState(false)
 
-  // Filter states
-  const [location, setLocation] = useState('')
+  // Filter states — initialized from URL params
+  const [location, setLocation] = useState(() => searchParams.get('q') || '')
   const [showFilters, setShowFilters] = useState(false)
-  const [radius, setRadius] = useState('20')
-  const [minBeds, setMinBeds] = useState('')
-  const [minBaths, setMinBaths] = useState('')
-  const [maxRent, setMaxRent] = useState('')
-  const [petFriendly, setPetFriendly] = useState('all')
+  const [radius, setRadius] = useState(() => searchParams.get('radius') || '20')
+  const [minBeds, setMinBeds] = useState(() => searchParams.get('beds') || '')
+  const [minBaths, setMinBaths] = useState(() => searchParams.get('baths') || '')
+  const [maxRent, setMaxRent] = useState(() => searchParams.get('rent') || '')
+  const [petFriendly, setPetFriendly] = useState(() => searchParams.get('pets') || 'all')
   const [isGeolocating, setIsGeolocating] = useState(false)
-  const [isGlobalView, setIsGlobalView] = useState(false)
-  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [isGlobalView, setIsGlobalView] = useState(() => searchParams.get('global') === '1')
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(() => {
+    const lat = searchParams.get('lat')
+    const lng = searchParams.get('lng')
+    return lat && lng ? { lat: Number(lat), lng: Number(lng) } : null
+  })
 
   // Stable ref for searchProperties so the mount effect doesn't go stale
   const searchRef = useRef(searchProperties)
   searchRef.current = searchProperties
 
-  // Initial load: try to get user's location, or default to San Diego
+  // Initial load: check URL params first, then geolocation or SD fallback
   useEffect(() => {
     let cancelled = false
 
     const init = async () => {
+      const urlLat = searchParams.get('lat')
+      const urlLng = searchParams.get('lng')
+      const urlGlobal = searchParams.get('global') === '1'
+
+      if (urlGlobal) {
+        if (!cancelled) {
+          setMapCenter({ lat: 39.8283, lng: -98.5795 })
+          setMapZoom(4)
+          await searchRef.current({ status: 'published', limit: 5000 })
+          setInitialLoadDone(true)
+        }
+        return
+      }
+
+      if (urlLat && urlLng) {
+        const coords = { lat: Number(urlLat), lng: Number(urlLng) }
+        if (!cancelled) {
+          setMapCenter(coords)
+          setMapZoom(11)
+          const filters: SearchFilters = {
+            lat: coords.lat,
+            lng: coords.lng,
+            radius: Number(searchParams.get('radius') || '20'),
+          }
+          const beds = searchParams.get('beds')
+          const baths = searchParams.get('baths')
+          const rent = searchParams.get('rent')
+          const pets = searchParams.get('pets')
+          if (beds) filters.minBeds = Number(beds)
+          if (baths) filters.minBaths = Number(baths)
+          if (rent) filters.maxRent = Number(rent)
+          if (pets && pets !== 'all') filters.allowsPets = pets === 'yes'
+          await searchRef.current(filters)
+          setInitialLoadDone(true)
+        }
+        return
+      }
+
+      // No URL params — geolocation or SD fallback (existing behavior)
       try {
-        // Try to get user's current location
         const coords = await getCurrentLocation()
         if (!cancelled) {
           setMapCenter({ lat: coords.lat, lng: coords.lng })
           setMapZoom(11)
-
-          // Load properties near user's location
-          await searchRef.current({
-            lat: coords.lat,
-            lon: coords.lng,
-            radius: 20,
-            limit: 500,
-          })
+          await searchRef.current({ lat: coords.lat, lon: coords.lng, radius: 20, limit: 500 })
         }
       } catch (error) {
-        // User denied location or geolocation not available
-        // Default to San Diego area
         if (!cancelled) {
           const sanDiego = { lat: 32.7157, lng: -117.1611 }
           setMapCenter(sanDiego)
           setMapZoom(11)
-
-          // Load properties near San Diego
-          await searchRef.current({
-            lat: sanDiego.lat,
-            lon: sanDiego.lng,
-            radius: 20,
-            limit: 500,
-          })
+          await searchRef.current({ lat: sanDiego.lat, lon: sanDiego.lng, radius: 20, limit: 500 })
         }
       } finally {
-        if (!cancelled) {
-          setInitialLoadDone(true)
-        }
+        if (!cancelled) setInitialLoadDone(true)
       }
     }
 
     init()
     return () => { cancelled = true }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // Note: searchParams intentionally excluded from deps — read only on mount
+
+  // pushSearchParams is defined before the handlers that depend on it
+  const pushSearchParams = useCallback((overrides: {
+    q?: string
+    lat?: number | null
+    lng?: number | null
+    radius?: string
+    beds?: string
+    baths?: string
+    rent?: string
+    pets?: string
+    global?: boolean
+  } = {}) => {
+    const params = new URLSearchParams()
+    const q = overrides.q !== undefined ? overrides.q : location
+    const lat = overrides.lat !== undefined ? overrides.lat : selectedCoords?.lat
+    const lng = overrides.lng !== undefined ? overrides.lng : selectedCoords?.lng
+    const r = overrides.radius !== undefined ? overrides.radius : radius
+    const b = overrides.beds !== undefined ? overrides.beds : minBeds
+    const ba = overrides.baths !== undefined ? overrides.baths : minBaths
+    const rent = overrides.rent !== undefined ? overrides.rent : maxRent
+    const pets = overrides.pets !== undefined ? overrides.pets : petFriendly
+    const isGlobal = overrides.global !== undefined ? overrides.global : isGlobalView
+
+    if (isGlobal) {
+      params.set('global', '1')
+    } else {
+      if (q) params.set('q', q)
+      if (lat != null) params.set('lat', String(lat))
+      if (lng != null) params.set('lng', String(lng))
+      if (r && r !== '20') params.set('radius', r)
+      if (b) params.set('beds', b)
+      if (ba) params.set('baths', ba)
+      if (rent) params.set('rent', rent)
+      if (pets && pets !== 'all') params.set('pets', pets)
+    }
+
+    const queryString = params.toString()
+    router.push(`/properties${queryString ? `?${queryString}` : ''}`)
+  }, [location, selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, isGlobalView, router])
 
   const handlePlaceSelect = useCallback(async (place: google.maps.places.AutocompletePrediction) => {
     // Get place details to extract coordinates
@@ -125,32 +191,32 @@ export default function PropertiesPage() {
           }
 
           searchProperties(filters)
+          pushSearchParams({
+            q: place.description,
+            lat: coords.lat,
+            lng: coords.lng,
+          })
         }
       }
     )
-  }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
+  }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
   const handleSearch = useCallback(async () => {
     const filters: SearchFilters = {
-      location,
       radius: Number(radius),
     }
-
-    // Include coordinates from last place selection if available
     if (selectedCoords) {
       filters.lat = selectedCoords.lat
       filters.lng = selectedCoords.lng
     }
-
     if (minBeds) filters.minBeds = Number(minBeds)
     if (minBaths) filters.minBaths = Number(minBaths)
     if (maxRent) filters.maxRent = Number(maxRent)
-    if (petFriendly !== 'all') {
-      filters.allowsPets = petFriendly === 'yes'
-    }
+    if (petFriendly !== 'all') filters.allowsPets = petFriendly === 'yes'
 
+    pushSearchParams()
     await searchProperties(filters)
-  }, [location, selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
+  }, [selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
   const handleGlobalView = useCallback(async () => {
     setIsGlobalView(true)
@@ -163,7 +229,8 @@ export default function PropertiesPage() {
       status: 'published',
       limit: 5000,
     })
-  }, [searchProperties])
+    pushSearchParams({ global: true })
+  }, [searchProperties, pushSearchParams])
 
   const handleUseMyLocation = useCallback(async () => {
     try {
@@ -192,13 +259,18 @@ export default function PropertiesPage() {
         maxRent: maxRent ? Number(maxRent) : undefined,
         allowsPets: petFriendly === 'yes' ? true : petFriendly === 'no' ? false : undefined,
       })
+      pushSearchParams({
+        q: result.results?.[0]?.formatted_address || '',
+        lat: coords.lat,
+        lng: coords.lng,
+      })
     } catch (err) {
       console.error('Error getting location:', err)
       alert('Could not get your location. Please enter a location manually.')
     } finally {
       setIsGeolocating(false)
     }
-  }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties])
+  }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
   const handlePropertyClick = useCallback((property: Property) => {
     router.push(`/properties/${property.id}`)
@@ -221,9 +293,11 @@ export default function PropertiesPage() {
     setPetFriendly('all')
     setSelectedCoords(null)
     setIsGlobalView(false)
-    // Re-run the search immediately with reset filter values using current location coords
-    // (can't call handleSearch here because async state updates won't reflect yet;
-    //  call searchProperties directly with explicit reset values instead)
+
+    // Sync URL: keep location/coords, clear filter params
+    pushSearchParams({ radius: '20', beds: '', baths: '', rent: '', pets: 'all', global: false })
+
+    // Re-run search with reset filter values directly (can't use handleSearch — async state won't reflect yet)
     if (selectedCoords) {
       searchProperties({
         lat: selectedCoords.lat,
@@ -231,7 +305,7 @@ export default function PropertiesPage() {
         radius: 20,
       })
     }
-  }, [selectedCoords, searchProperties])
+  }, [selectedCoords, searchProperties, pushSearchParams])
 
   // Memoize to give MapView a stable array reference
   const propertiesWithCoords = useMemo(
@@ -460,5 +534,13 @@ export default function PropertiesPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function PropertiesPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><LoadingSpinner size="lg" /></div>}>
+      <PropertiesPageInner />
+    </Suspense>
   )
 }
