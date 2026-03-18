@@ -213,6 +213,26 @@ export default function PropertiesPage() {
     [minBeds, minBaths, maxRent, petFriendly]
   )
 
+  const handleClearFilters = useCallback(() => {
+    setRadius('20')
+    setMinBeds('')
+    setMinBaths('')
+    setMaxRent('')
+    setPetFriendly('all')
+    setSelectedCoords(null)
+    setIsGlobalView(false)
+    // Re-run the search immediately with reset filter values using current location coords
+    // (can't call handleSearch here because async state updates won't reflect yet;
+    //  call searchProperties directly with explicit reset values instead)
+    if (selectedCoords) {
+      searchProperties({
+        lat: selectedCoords.lat,
+        lng: selectedCoords.lng,
+        radius: 20,
+      })
+    }
+  }, [selectedCoords, searchProperties])
+
   // Memoize to give MapView a stable array reference
   const propertiesWithCoords = useMemo(
     () => properties.filter((p) => p.latitude && p.longitude),
@@ -365,6 +385,17 @@ export default function PropertiesPage() {
                       <option value="no">No Pets</option>
                     </select>
                   </div>
+
+                  {activeFilterCount > 0 && (
+                    <div className="col-span-2 flex justify-end pt-1">
+                      <button
+                        onClick={handleClearFilters}
+                        className="text-sm text-orange hover:underline font-medium"
+                      >
+                        Clear Filters
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
