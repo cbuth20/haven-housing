@@ -214,7 +214,7 @@ function PropertiesPageInner() {
     if (maxRent) filters.maxRent = Number(maxRent)
     if (petFriendly !== 'all') filters.allowsPets = petFriendly === 'yes'
 
-    pushSearchParams()
+    pushSearchParams({ global: false })
     await searchProperties(filters)
   }, [selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
