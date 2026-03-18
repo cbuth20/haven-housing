@@ -14,7 +14,7 @@ export function PropertyAddressHeading({ streetAddress, city, state, zipCode }: 
 
   return (
     <h1 className="text-3xl font-heading font-bold text-navy mb-2">
-      {isAuthenticated ? `${streetAddress}, ${city}, ${state} ${zipCode}` : `${city}, ${state}`}
+      {isAuthenticated ? `${streetAddress}, ${city}, ${state} ${zipCode}` : `${city}, ${state} ${zipCode}`}
     </h1>
   )
 }
