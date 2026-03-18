@@ -81,7 +81,7 @@ export function PlacesAutocompleteDropdown({
     autocompleteServiceRef.current.getPlacePredictions(
       {
         input,
-        types: ['(cities)'],
+        types: ['geocode'],
         sessionToken: sessionTokenRef.current!,
       },
       (results, status) => {
