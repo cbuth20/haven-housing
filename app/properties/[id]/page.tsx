@@ -58,6 +58,11 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
     notFound()
   }
 
+  // Check authentication server-side
+  const supabase = createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isAuthenticated = !!user
+
   const similarProperties = await getSimilarProperties(property)
   const images = property.media_gallery_urls || []
   if (property.cover_photo_url && !images.includes(property.cover_photo_url)) {
@@ -235,7 +240,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                 propertyAddress={fullAddress}
               />
 
-              {property.listing_link && (
+              {isAuthenticated && property.listing_link && (
                 <a
                   href={property.listing_link}
                   target="_blank"
