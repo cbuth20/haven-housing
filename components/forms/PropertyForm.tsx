@@ -45,6 +45,20 @@ const submissionSchema = baseSchema.extend({
   submitter_name: z.string().min(2, 'Name is required'),
   submitter_email: z.string().email('Invalid email'),
   submitter_phone: z.string().min(10, 'Phone is required'),
+  // All property fields required for public submissions (except listing_link)
+  description: z.string().min(1, 'Description is required'),
+  unit_type: z.string().min(1, 'Unit type is required'),
+  beds: z.number().int().min(0, 'Bedrooms is required'),
+  baths: z.number().min(0, 'Bathrooms is required'),
+  square_footage: z.number().int().positive('Square footage is required'),
+  monthly_rent: z.number().positive('Monthly rent is required'),
+  pet_policy: z.string().min(1, 'Pet policy is required'),
+  laundry: z.string().min(1, 'Laundry is required'),
+  parking: z.string().min(1, 'Parking is required'),
+  furnish_level: z.string().min(1, 'Furnish level is required'),
+  landlord_name: z.string().min(1, 'Landlord name is required'),
+  landlord_email: z.string().email('Invalid email address'),
+  landlord_phone: z.string().min(10, 'Landlord phone is required'),
 })
 
 type AdminFormData = z.infer<typeof adminSchema>
@@ -377,6 +391,7 @@ export function PropertyForm(props: PropertyFormProps) {
               error={errors.description?.message as string}
               placeholder="Describe the property..."
               rows={4}
+              required={mode === 'submission'}
             />
           </div>
         </div>
@@ -393,6 +408,7 @@ export function PropertyForm(props: PropertyFormProps) {
             error={errors.beds?.message as string}
             min="0"
             placeholder="2"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -403,6 +419,7 @@ export function PropertyForm(props: PropertyFormProps) {
             error={errors.baths?.message as string}
             min="0"
             placeholder="2"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -412,6 +429,7 @@ export function PropertyForm(props: PropertyFormProps) {
             error={errors.square_footage?.message as string}
             min="0"
             placeholder="1200"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -419,6 +437,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('unit_type')}
             error={errors.unit_type?.message as string}
             placeholder="Apartment, House, Condo"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -429,6 +448,7 @@ export function PropertyForm(props: PropertyFormProps) {
             error={errors.monthly_rent?.message as string}
             min="0"
             placeholder="2500"
+            required={mode === 'submission'}
           />
         </div>
       </div>
@@ -442,6 +462,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('pet_policy')}
             error={errors.pet_policy?.message as string}
             options={petPolicyOptions}
+            required={mode === 'submission'}
           />
 
           <Select
@@ -449,6 +470,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('laundry')}
             error={errors.laundry?.message as string}
             options={laundryOptions}
+            required={mode === 'submission'}
           />
 
           <Select
@@ -456,6 +478,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('parking')}
             error={errors.parking?.message as string}
             options={parkingOptions}
+            required={mode === 'submission'}
           />
 
           <Select
@@ -463,6 +486,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('furnish_level')}
             error={errors.furnish_level?.message as string}
             options={furnishOptions}
+            required={mode === 'submission'}
           />
         </div>
       </div>
@@ -476,6 +500,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('landlord_name')}
             error={errors.landlord_name?.message as string}
             placeholder="John Doe"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -484,6 +509,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('landlord_email')}
             error={errors.landlord_email?.message as string}
             placeholder="landlord@example.com"
+            required={mode === 'submission'}
           />
 
           <Input
@@ -492,6 +518,7 @@ export function PropertyForm(props: PropertyFormProps) {
             {...register('landlord_phone')}
             error={errors.landlord_phone?.message as string}
             placeholder="(555) 123-4567"
+            required={mode === 'submission'}
           />
         </div>
       </div>

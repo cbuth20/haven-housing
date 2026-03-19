@@ -177,7 +177,7 @@ export async function sendFormNotification(
   const pmClient = getPostmarkClient()
   if (!pmClient) return
 
-  const recipients = FORM_RECIPIENTS[formCategory] || TESTING_RECIPIENTS
+  const recipients = FORM_RECIPIENTS[formCategory] || ['merrick@havenhousingsolutions.com']
 
   try {
     const html = generateNotificationHtml(formCategory, formType, data, adminPath, exclude)
