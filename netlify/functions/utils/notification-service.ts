@@ -2,13 +2,13 @@ import * as postmark from 'postmark'
 
 // Per-form-type recipient mappings
 const FORM_RECIPIENTS: Record<string, string[]> = {
-  'housing-request': ['merrick@havenhousingsolutions.com'],
-  'claims': ['merrick@havenhousingsolutions.com'],
-  'property': ['merrick@havenhousingsolutions.com'],
-  'contact': ['merrick@havenhousingsolutions.com'],
-  'insurance': ['merrick@havenhousingsolutions.com'],
-  'corporate': ['merrick@havenhousingsolutions.com'],
-  'government': ['merrick@havenhousingsolutions.com'],
+  'housing-request': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
+  'claims': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com', 'requests@havenhousingsolutions.com'],
+  'property': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
+  'contact': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
+  'insurance': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
+  'corporate': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
+  'government': ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com'],
 }
 
 // Header color per form type for visual distinction
@@ -177,7 +177,7 @@ export async function sendFormNotification(
   const pmClient = getPostmarkClient()
   if (!pmClient) return
 
-  const recipients = FORM_RECIPIENTS[formCategory] || ['merrick@havenhousingsolutions.com']
+  const recipients = FORM_RECIPIENTS[formCategory] || ['merrick@havenhousingsolutions.com', 'buthconnor@gmail.com']
 
   try {
     const html = generateNotificationHtml(formCategory, formType, data, adminPath, exclude)
