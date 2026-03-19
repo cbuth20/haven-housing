@@ -16,7 +16,7 @@ const teamMembers = [
     bio: "With a degree in Marine Engineering, an Unlimited Tonnage Engineer's License, and service in the U.S. Navy Reserve, Merrick brings precision, leadership, and operational discipline to the company. His background managing complex systems aboard commercial vessels informs the structure and reliability of Haven Housing's nationwide operations.",
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
-    photo: '/images/team/merrick-kovatch.webp',
+    photo: '/images/team/merrick-kovatch.jpg',
     gradient: 'from-navy-700 to-navy',
   },
   {
@@ -46,6 +46,13 @@ const teamMembers = [
     bio: 'With more than eight years in insurance relocation and temporary housing and over 20 years in customer service, Kristina combines operational expertise with genuine compassion. A top-performing Guest Service Representative, she supports displaced families, insurance adjusters, and carrier partners during life\'s most disruptive moments. Kristina manages high-volume ALE files, coordinates lease extensions, resolves billing discrepancies, and ensures clear communication between property owners, insurers, and insured families. At Haven Housing Solutions, she is dedicated to connecting carriers, property partners, and displaced households with professionalism, urgency, and care, restoring stability and delivering dependable housing solutions when families need them most. In her free time, she enjoys spending time with family, especially engaging with her teenage sons.',
     photo: '/images/team/kristina-ognjanovac.png',
     gradient: 'from-orange to-navy',
+  },
+  {
+    name: 'Chantel Molina',
+    title: 'Placement Specialist',
+    bio: 'Chantel is a dedicated relocation professional with more than two decades of experience supporting corporate and insurance clients. She specializes in coordinating smooth, well-managed transitions while providing personalized service that ensures each client feels supported every step of the way. In her free time, she enjoys the outdoors, reading, and making memories with her family.',
+    photo: '/images/team/chantel-molina.png',
+    gradient: 'from-navy to-orange',
   },
 ]
 
