@@ -1,17 +1,14 @@
 import * as postmark from 'postmark'
 
-// Testing recipient included on all notifications
-const TESTING_RECIPIENTS = ['buthconnor@gmail.com']
-
 // Per-form-type recipient mappings
 const FORM_RECIPIENTS: Record<string, string[]> = {
-  'housing-request': ['requests@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'claims': ['claims@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'property': ['properties@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'contact': ['questions@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'insurance': ['requests@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'corporate': ['requests@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
-  'government': ['requests@havenhousingsolutions.com', ...TESTING_RECIPIENTS],
+  'housing-request': ['merrick@havenhousingsolutions.com'],
+  'claims': ['merrick@havenhousingsolutions.com'],
+  'property': ['merrick@havenhousingsolutions.com'],
+  'contact': ['merrick@havenhousingsolutions.com'],
+  'insurance': ['merrick@havenhousingsolutions.com'],
+  'corporate': ['merrick@havenhousingsolutions.com'],
+  'government': ['merrick@havenhousingsolutions.com'],
 }
 
 // Header color per form type for visual distinction
