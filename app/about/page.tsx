@@ -8,7 +8,7 @@ const teamMembers = [
     location: 'San Diego, CA',
     interests: 'Volleyball, surfing, tennis, skiing, and the outdoors',
     photo: '/images/team/cory-yoviene.jpg',
-    photoPosition: 'object-[center_15%]',
+
     gradient: 'from-navy to-navy-700',
   },
   {
@@ -18,7 +18,7 @@ const teamMembers = [
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
     photo: '/images/team/merrick-kovatch.jpg',
-    photoPosition: 'object-[center_10%]',
+
     gradient: 'from-navy-700 to-navy',
   },
   {
@@ -260,14 +260,14 @@ export default function AboutPage() {
           </div>
 
           {/* Co-Founders - Featured */}
-          <div className="grid md:grid-cols-2 gap-10 max-w-5xl mx-auto mb-14">
+          <div className="grid md:grid-cols-2 gap-10 max-w-3xl mx-auto mb-14">
             {teamMembers.slice(0, 2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
+                <div className="aspect-square bg-gray-100 overflow-hidden">
                   <img
                     src={member.photo}
                     alt={member.name}
-                    className={`w-full h-full object-cover ${member.photoPosition || 'object-top'}`}
+                    className="w-full h-full object-cover object-top"
                   />
                 </div>
                 <div className="p-8">
@@ -291,10 +291,10 @@ export default function AboutPage() {
           </div>
 
           {/* Other Team Members */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {teamMembers.slice(2).map((member) => (
               <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
-                <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
+                <div className="aspect-square bg-gray-100 overflow-hidden">
                   <img
                     src={member.photo}
                     alt={member.name}
