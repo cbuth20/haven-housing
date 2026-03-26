@@ -18,7 +18,7 @@ const teamMembers = [
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
     photo: '/images/team/merrick-kovatch.jpg',
-
+    photoStyle: { objectPosition: 'center -40px' } as React.CSSProperties,
     gradient: 'from-navy-700 to-navy',
   },
   {
@@ -268,6 +268,7 @@ export default function AboutPage() {
                     src={member.photo}
                     alt={member.name}
                     className="w-full h-full object-cover object-top"
+                    style={member.photoStyle}
                   />
                 </div>
                 <div className="p-8">
