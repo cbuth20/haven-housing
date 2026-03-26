@@ -18,7 +18,7 @@ const teamMembers = [
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
     photo: '/images/team/merrick-kovatch.jpg',
-    photoStyle: { objectPosition: 'center -40px' } as React.CSSProperties,
+    photoStyle: { objectPosition: 'center -80px' } as React.CSSProperties,
     gradient: 'from-navy-700 to-navy',
   },
   {
