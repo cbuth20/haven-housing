@@ -18,7 +18,7 @@ const teamMembers = [
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
     photo: '/images/team/merrick-kovatch.jpg',
-    photoPosition: 'object-[center_20%]',
+    photoPosition: 'object-[center_10%]',
     gradient: 'from-navy-700 to-navy',
   },
   {
