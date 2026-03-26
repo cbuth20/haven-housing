@@ -6,14 +6,59 @@ import { Property } from '@/types/property'
  */
 export function extractPlainText(value: string | null | undefined): string {
   if (!value) return ''
-  if (typeof value === 'string' && value.includes('{"formatted"')) {
-    try {
-      const parsed = JSON.parse(value)
-      return parsed.formatted || value
-    } catch {
-      return value
+
+  // Handle JSON-formatted fields from Wix migration
+  // Some fields contain {"formatted":"value"} or other JSON structures
+  if (typeof value === 'string') {
+    // Try to extract "formatted" field from JSON
+    if (value.includes('{"formatted"')) {
+      try {
+        const parsed = JSON.parse(value)
+        return parsed.formatted || value
+      } catch {
+        // Fall through to other cleanup
+      }
+    }
+
+    // Strip any JSON object/array content that got appended to address fields
+    // e.g. "Millsboro, DE {"subdivisions":[...],"city":"Millsboro",...}"
+    const jsonStart = value.search(/\s*[{[]/)
+    if (jsonStart > 0) {
+      const before = value.substring(0, jsonStart).trim()
+      // Only use the pre-JSON portion if it looks like meaningful text
+      if (before.length > 0) {
+        // Try to parse the JSON portion to extract useful fields like city
+        try {
+          const jsonPart = value.substring(jsonStart)
+          const parsed = JSON.parse(jsonPart)
+          // If the JSON has a "city" or "formatted" field, prefer that
+          if (parsed.formatted) return parsed.formatted
+        } catch {
+          // JSON didn't parse cleanly, just use the text before it
+        }
+        return before
+      }
+    }
+
+    // Handle values that are entirely JSON objects/arrays
+    if (value.startsWith('{') || value.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(value)
+        // Try common field names for plain text values
+        if (parsed.formatted) return parsed.formatted
+        if (parsed.city) return parsed.city
+        if (parsed.name) return parsed.name
+        if (parsed.value) return parsed.value
+        // If it's an array, return empty - it's not displayable text
+        if (Array.isArray(parsed)) return ''
+        return ''
+      } catch {
+        // Not valid JSON, return as-is
+        return value
+      }
     }
   }
+
   return value
 }
 

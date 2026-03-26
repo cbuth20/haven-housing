@@ -8,6 +8,7 @@ const teamMembers = [
     location: 'San Diego, CA',
     interests: 'Volleyball, surfing, tennis, skiing, and the outdoors',
     photo: '/images/team/cory-yoviene.jpg',
+    photoPosition: 'object-[center_15%]',
     gradient: 'from-navy to-navy-700',
   },
   {
@@ -17,6 +18,7 @@ const teamMembers = [
     location: 'Kailua, HI',
     interests: 'Traveling, surfing, freediving, and exploring the outdoors',
     photo: '/images/team/merrick-kovatch.jpg',
+    photoPosition: 'object-[center_20%]',
     gradient: 'from-navy-700 to-navy',
   },
   {
@@ -265,7 +267,7 @@ export default function AboutPage() {
                   <img
                     src={member.photo}
                     alt={member.name}
-                    className="w-full h-full object-cover object-top"
+                    className={`w-full h-full object-cover ${member.photoPosition || 'object-top'}`}
                   />
                 </div>
                 <div className="p-8">
