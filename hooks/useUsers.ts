@@ -24,8 +24,9 @@ export function useUsers() {
   const [error, setError] = useState<string | null>(null)
 
   const getToken = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    return session?.access_token
+    const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000))
+    const sessionPromise = supabase.auth.getSession().then(({ data: { session } }) => session?.access_token ?? null)
+    return Promise.race([sessionPromise, timeout])
   }
 
   const fetchUsers = async (): Promise<UserProfile[]> => {
