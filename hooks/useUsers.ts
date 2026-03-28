@@ -118,12 +118,10 @@ export function useUsers() {
   }
 
   const resendInvite = async (userId: string): Promise<void> => {
-    console.log('resendInvite called for userId:', userId)
-    const token = await getToken()
-    console.log('token retrieved:', !!token)
+    const { data: { session } } = await supabase.auth.getSession()
+    const token = session?.access_token
     if (!token) throw new Error('Not authenticated')
 
-    console.log('Sending resend invite request...')
     const response = await fetch('/.netlify/functions/users-resend-invite', {
       method: 'POST',
       headers: {
@@ -133,7 +131,6 @@ export function useUsers() {
       body: JSON.stringify({ userId }),
     })
 
-    console.log('Resend invite response status:', response.status)
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Failed to resend invite' }))
       throw new Error(error.message)

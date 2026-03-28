@@ -17,7 +17,7 @@ export default function UsersPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [actionLoading, setActionLoading] = useState<Set<string>>(new Set())
   const [confirmDelete, setConfirmDelete] = useState<UserProfile | null>(null)
 
   const { fetchUsers, resendInvite, deleteUser } = useUsers()
@@ -56,7 +56,8 @@ export default function UsersPage() {
   }
 
   const handleResendInvite = async (user: UserProfile) => {
-    setActionLoading(user.id)
+    if (actionLoading.has(user.id)) return
+    setActionLoading((prev) => new Set(prev).add(user.id))
     setError(null)
     setSuccessMessage(null)
     try {
@@ -65,12 +66,17 @@ export default function UsersPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to resend invite')
     } finally {
-      setActionLoading(null)
+      setActionLoading((prev) => {
+        const next = new Set(prev)
+        next.delete(user.id)
+        return next
+      })
     }
   }
 
   const handleDeleteUser = async (user: UserProfile) => {
-    setActionLoading(user.id)
+    if (actionLoading.has(user.id)) return
+    setActionLoading((prev) => new Set(prev).add(user.id))
     setError(null)
     setSuccessMessage(null)
     setConfirmDelete(null)
@@ -81,7 +87,11 @@ export default function UsersPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to delete user')
     } finally {
-      setActionLoading(null)
+      setActionLoading((prev) => {
+        const next = new Set(prev)
+        next.delete(user.id)
+        return next
+      })
     }
   }
 
@@ -169,16 +179,16 @@ export default function UsersPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={(e) => { e.stopPropagation(); handleResendInvite(user) }}
-            disabled={actionLoading === user.id}
+            disabled={actionLoading.has(user.id)}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100 disabled:opacity-50"
             title="Resend invitation email"
           >
             <EnvelopeIcon className="w-3.5 h-3.5" />
-            {actionLoading === user.id ? 'Sending...' : 'Resend Invite'}
+            {actionLoading.has(user.id) ? 'Sending...' : 'Resend Invite'}
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setConfirmDelete(user) }}
-            disabled={actionLoading === user.id}
+            disabled={actionLoading.has(user.id)}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 rounded hover:bg-red-100 disabled:opacity-50"
             title="Delete user"
           >
