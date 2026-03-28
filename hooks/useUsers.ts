@@ -116,9 +116,49 @@ export function useUsers() {
     }
   }
 
+  const resendInvite = async (userId: string): Promise<void> => {
+    const token = await getToken()
+    if (!token) throw new Error('Not authenticated')
+
+    const response = await fetch('/.netlify/functions/users-resend-invite', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to resend invite' }))
+      throw new Error(error.message)
+    }
+  }
+
+  const deleteUser = async (userId: string): Promise<void> => {
+    const token = await getToken()
+    if (!token) throw new Error('Not authenticated')
+
+    const response = await fetch('/.netlify/functions/users-delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ userId }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Failed to delete user' }))
+      throw new Error(error.message)
+    }
+  }
+
   return {
     fetchUsers,
     createUser,
+    resendInvite,
+    deleteUser,
     isLoading,
     error,
   }

@@ -7,17 +7,20 @@ import { UserForm } from '@/components/forms/UserForm'
 import { Modal } from '@/components/common/Modal'
 import { Button } from '@/components/common/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, EnvelopeIcon, TrashIcon } from '@heroicons/react/24/outline'
 
 export default function UsersPage() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [users, setUsers] = useState<UserProfile[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<UserProfile | null>(null)
 
-  const { fetchUsers } = useUsers()
+  const { fetchUsers, resendInvite, deleteUser } = useUsers()
 
   // Load users on mount
   useEffect(() => {
@@ -50,6 +53,36 @@ export default function UsersPage() {
 
   const handleFormCancel = () => {
     setIsFormOpen(false)
+  }
+
+  const handleResendInvite = async (user: UserProfile) => {
+    setActionLoading(user.id)
+    setError(null)
+    setSuccessMessage(null)
+    try {
+      await resendInvite(user.id)
+      setSuccessMessage(`Invitation resent to ${user.email}`)
+    } catch (err: any) {
+      setError(err.message || 'Failed to resend invite')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleDeleteUser = async (user: UserProfile) => {
+    setActionLoading(user.id)
+    setError(null)
+    setSuccessMessage(null)
+    setConfirmDelete(null)
+    try {
+      await deleteUser(user.id)
+      setSuccessMessage(`${user.full_name || user.email} has been deleted`)
+      await loadUsers()
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete user')
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   const handleSort = (key: string) => {
@@ -128,6 +161,33 @@ export default function UsersPage() {
         </div>
       ),
     },
+    {
+      key: 'id',
+      label: 'Actions',
+      sortable: false,
+      render: (value, user) => (
+        <div className="flex items-center gap-2">
+          <button
+            onClick={(e) => { e.stopPropagation(); handleResendInvite(user) }}
+            disabled={actionLoading === user.id}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-700 bg-blue-50 rounded hover:bg-blue-100 disabled:opacity-50"
+            title="Resend invitation email"
+          >
+            <EnvelopeIcon className="w-3.5 h-3.5" />
+            {actionLoading === user.id ? 'Sending...' : 'Resend Invite'}
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirmDelete(user) }}
+            disabled={actionLoading === user.id}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-red-700 bg-red-50 rounded hover:bg-red-100 disabled:opacity-50"
+            title="Delete user"
+          >
+            <TrashIcon className="w-3.5 h-3.5" />
+            Delete
+          </button>
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -150,6 +210,13 @@ export default function UsersPage() {
           Add User
         </Button>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -195,6 +262,35 @@ export default function UsersPage() {
           onSuccess={handleFormSuccess}
           onCancel={handleFormCancel}
         />
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!confirmDelete}
+        onClose={() => setConfirmDelete(null)}
+        title="Delete User"
+        size="sm"
+      >
+        {confirmDelete && (
+          <div className="space-y-4">
+            <p className="text-gray-700">
+              Are you sure you want to delete <strong>{confirmDelete.full_name || confirmDelete.email}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" size="sm" onClick={() => setConfirmDelete(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => handleDeleteUser(confirmDelete)}
+                className="!bg-red-600 hover:!bg-red-700"
+              >
+                Delete User
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
