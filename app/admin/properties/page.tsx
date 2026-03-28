@@ -339,7 +339,7 @@ export default function PropertiesPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <button
           onClick={() => setStatusFilter('all')}
           className={`p-4 rounded-lg shadow text-left transition-all ${

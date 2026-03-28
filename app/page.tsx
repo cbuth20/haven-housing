@@ -95,7 +95,7 @@ function FeaturedProperties() {
         </div>
 
         <div className="relative">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {displayProperties.map((property) => (
               <Link
                 key={property.id}
@@ -172,7 +172,7 @@ function TestimonialsCarousel() {
         </div>
 
         <div className="relative">
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
             {displayTestimonials.map((testimonial, i) => (
               <div key={`${testimonial.name}-${i}`} className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex items-center mb-4">
@@ -231,7 +231,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section with Background Image */}
-      <section className="relative h-[600px] md:h-[700px] flex items-center">
+      <section className="relative h-[450px] sm:h-[600px] md:h-[700px] flex items-center">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <img
@@ -246,10 +246,10 @@ export default function Home() {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
           <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-7xl font-heading font-bold text-white mb-6">
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-heading font-bold text-white mb-4 sm:mb-6">
               Haven Housing Solutions
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-base sm:text-xl md:text-2xl text-white/90 mb-6 sm:mb-8 leading-relaxed">
               We solve lodging needs for displaced families, government personnel,
               corporate and relocation travelers, project and intern groups, and more.
               Get a customized solution to fit your unique requirements today.
@@ -275,7 +275,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8">
             {/* Insurance Relocation */}
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="text-4xl mb-4">🏠</div>
@@ -360,7 +360,7 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-5 gap-8 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8 text-center">
             <div>
               <div className="text-4xl font-heading font-bold text-navy mb-2">3k+</div>
               <div className="text-gray-600">Properties Listed</div>

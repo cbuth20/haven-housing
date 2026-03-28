@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PropertyListCard } from '@/components/property/PropertyListCard'
 import { usePropertySearch } from '@/hooks/usePropertySearch'
 import { Property } from '@/types/property'
-import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon, GlobeAmericasIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon, GlobeAmericasIcon, MapIcon, ListBulletIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
@@ -36,6 +36,7 @@ function PropertiesPageInner() {
   const [petFriendly, setPetFriendly] = useState(() => searchParams.get('pets') || 'all')
   const [isGeolocating, setIsGeolocating] = useState(false)
   const [isGlobalView, setIsGlobalView] = useState(() => searchParams.get('global') === '1')
+  const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
   const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(() => {
     const lat = searchParams.get('lat')
     const lng = searchParams.get('lng')
@@ -316,18 +317,36 @@ function PropertiesPageInner() {
   return (
     <div className="flex flex-col" style={{ height: 'calc(100vh - 64px)' }}>
       {/* Compact Header */}
-      <div className="bg-navy text-white py-6 flex-shrink-0">
-        <div className="max-w-full px-6">
-          <h1 className="text-2xl font-heading font-bold">Find Your Perfect Property</h1>
+      <div className="bg-navy text-white py-4 sm:py-6 flex-shrink-0">
+        <div className="max-w-full px-4 sm:px-6">
+          <h1 className="text-xl sm:text-2xl font-heading font-bold">Find Your Perfect Property</h1>
         </div>
+      </div>
+
+      {/* Mobile View Toggle */}
+      <div className="lg:hidden flex border-b border-gray-200 bg-white flex-shrink-0">
+        <button
+          onClick={() => setMobileView('list')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'list' ? 'text-navy border-b-2 border-navy' : 'text-gray-500'}`}
+        >
+          <ListBulletIcon className="h-4 w-4" />
+          List
+        </button>
+        <button
+          onClick={() => setMobileView('map')}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-colors ${mobileView === 'map' ? 'text-navy border-b-2 border-navy' : 'text-gray-500'}`}
+        >
+          <MapIcon className="h-4 w-4" />
+          Map
+        </button>
       </div>
 
       {/* Split Layout */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Left Panel - Search and Results */}
-        <div className="w-1/2 flex flex-col border-r border-gray-200">
+        <div className={`w-full lg:w-1/2 flex flex-col border-r border-gray-200 ${mobileView === 'map' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Location Search */}
-          <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
+          <div className="p-4 sm:p-6 bg-white border-b border-gray-200 flex-shrink-0">
             <div className="space-y-4">
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -348,22 +367,22 @@ function PropertiesPageInner() {
                   isLoading={isGeolocating}
                   className="flex-shrink-0 whitespace-nowrap"
                 >
-                  <MapPinIcon className="h-4 w-4 mr-1" />
-                  My Location
+                  <MapPinIcon className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">My Location</span>
                 </Button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <Button
                   variant={showFilters ? 'primary' : 'outline'}
                   size="sm"
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center"
                 >
-                  <AdjustmentsHorizontalIcon className="h-5 w-5 mr-2" />
-                  Filters
+                  <AdjustmentsHorizontalIcon className="h-5 w-5 sm:mr-2" />
+                  <span className="hidden sm:inline">Filters</span>
                   {activeFilterCount > 0 && (
-                    <span className="ml-2 bg-orange text-white text-xs px-2 py-0.5 rounded-full">
+                    <span className="ml-1 sm:ml-2 bg-orange text-white text-xs px-2 py-0.5 rounded-full">
                       {activeFilterCount}
                     </span>
                   )}
@@ -375,8 +394,8 @@ function PropertiesPageInner() {
                   isLoading={isLoading && isGlobalView}
                   className="flex items-center"
                 >
-                  <GlobeAmericasIcon className="h-5 w-5 mr-2" />
-                  Global View
+                  <GlobeAmericasIcon className="h-5 w-5 sm:mr-2" />
+                  <span className="hidden sm:inline">Global View</span>
                 </Button>
                 <Button
                   variant="primary"
@@ -520,7 +539,7 @@ function PropertiesPageInner() {
         </div>
 
         {/* Right Panel - Map */}
-        <div className="w-1/2 flex flex-col">
+        <div className={`w-full lg:w-1/2 flex flex-col ${mobileView === 'list' ? 'hidden lg:flex' : 'flex'}`}>
           <div className="h-full">
             <MapView
               properties={propertiesWithCoords}
