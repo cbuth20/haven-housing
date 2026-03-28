@@ -233,7 +233,7 @@ export default function UsersPage() {
       )}
 
       {/* Users Table */}
-      {!isLoading && !error && (
+      {!isLoading && (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           {users.length === 0 ? (
             <div className="text-center py-12">
