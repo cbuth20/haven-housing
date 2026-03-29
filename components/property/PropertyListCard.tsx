@@ -25,21 +25,26 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
   const isPetFriendly = property.pet_policy?.toLowerCase().includes('allowed') ||
     property.pet_policy?.toLowerCase().includes('yes')
 
+  const title = isAuthenticated
+    ? getPropertyDisplayTitle(property)
+    : `${extractPlainText(property.city)}, ${extractPlainText(property.state)} ${extractPlainText(property.zip_code)}`
+
   return (
     <div
       onClick={onClick}
       className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-all cursor-pointer overflow-hidden group"
     >
-      <div className="flex">
+      {/* Mobile: vertical stack / Desktop: horizontal */}
+      <div className="flex flex-col sm:flex-row">
         {/* Image Section */}
-        <div className="relative w-56 h-44 bg-gray-200 flex-shrink-0">
+        <div className="relative w-full sm:w-56 h-40 sm:h-44 bg-gray-200 flex-shrink-0">
           {hasImage ? (
             <Image
               src={property.cover_photo_url!}
-              alt={getPropertyDisplayTitle(property)}
+              alt={title}
               fill
               className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="224px"
+              sizes="(max-width: 640px) 100vw, 224px"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
@@ -48,7 +53,7 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
           )}
 
           {/* Badges */}
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
+          <div className="absolute top-2 left-2 flex flex-row sm:flex-col gap-1">
             {property.featured && (
               <div className="bg-orange text-white px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 shadow-lg">
                 <SparklesIconSolid className="h-3 w-3" />
@@ -62,6 +67,14 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
             )}
           </div>
 
+          {/* Price badge on mobile (overlaid on image) */}
+          {property.monthly_rent && (
+            <div className="sm:hidden absolute bottom-2 left-2 bg-navy/90 backdrop-blur text-white px-2.5 py-1 rounded-lg shadow-lg">
+              <span className="text-base font-bold">${property.monthly_rent.toLocaleString()}</span>
+              <span className="text-xs opacity-80">/mo</span>
+            </div>
+          )}
+
           {/* Distance Badge */}
           {showDistance && property.distance && (
             <div className="absolute bottom-2 right-2 bg-white/95 backdrop-blur px-2 py-1 rounded text-xs font-semibold text-navy shadow-lg">
@@ -71,15 +84,16 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
         </div>
 
         {/* Content Section */}
-        <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
+        <div className="flex-1 p-3 sm:p-4 flex flex-col justify-between min-w-0">
           {/* Header */}
           <div>
             <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="text-lg font-semibold text-navy group-hover:text-orange transition-colors line-clamp-1 flex-1">
-                {isAuthenticated ? getPropertyDisplayTitle(property) : `${extractPlainText(property.city)}, ${extractPlainText(property.state)} ${extractPlainText(property.zip_code)}`}
+              <h3 className="text-base sm:text-lg font-semibold text-navy group-hover:text-orange transition-colors line-clamp-1 flex-1">
+                {title}
               </h3>
+              {/* Price on desktop only (inline) */}
               {property.monthly_rent && (
-                <div className="flex-shrink-0">
+                <div className="hidden sm:block flex-shrink-0">
                   <p className="text-xl font-bold text-navy">
                     ${property.monthly_rent.toLocaleString()}
                   </p>
@@ -89,19 +103,19 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
             </div>
 
             {/* Location */}
-            <div className="flex items-center gap-1 text-gray-600 mb-3">
-              <MapPinIcon className="h-4 w-4 flex-shrink-0" />
-              <p className="text-sm truncate">
+            <div className="flex items-center gap-1 text-gray-600 mb-2 sm:mb-3">
+              <MapPinIcon className="h-3.5 sm:h-4 w-3.5 sm:w-4 flex-shrink-0" />
+              <p className="text-xs sm:text-sm truncate">
                 {isAuthenticated && property.street_address && `${extractPlainText(property.street_address)}, `}
                 {extractPlainText(property.city)}, {extractPlainText(property.state)} {!isAuthenticated ? '' : extractPlainText(property.zip_code)}
               </p>
             </div>
 
-            {/* Key Details */}
-            <div className="flex flex-wrap gap-3 text-sm text-gray-700 mb-3">
+            {/* Key Details — compact on mobile */}
+            <div className="flex flex-wrap gap-2 sm:gap-3 text-xs sm:text-sm text-gray-700 mb-2 sm:mb-3">
               {property.unit_type && (
                 <div className="flex items-center gap-1">
-                  <HomeIconSolid className="h-4 w-4 text-navy" />
+                  <HomeIconSolid className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-navy" />
                   <span>{property.unit_type}</span>
                 </div>
               )}
@@ -111,14 +125,15 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
               {property.baths !== null && property.baths !== undefined && (
                 <span className="font-medium">{property.baths} Bath{property.baths !== 1 ? 's' : ''}</span>
               )}
+              {/* Square footage: hidden on mobile */}
               {property.square_footage && (
-                <span className="text-gray-600">{property.square_footage.toLocaleString()} sq ft</span>
+                <span className="hidden sm:inline text-gray-600">{property.square_footage.toLocaleString()} sq ft</span>
               )}
             </div>
 
-            {/* Amenities Pills */}
+            {/* Amenities Pills — hidden on mobile */}
             {featuredAmenities.length > 0 && (
-              <div className="flex flex-wrap gap-1 mb-2">
+              <div className="hidden sm:flex flex-wrap gap-1 mb-2">
                 {featuredAmenities.map((amenity, index) => (
                   <span
                     key={index}
@@ -138,19 +153,20 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="flex items-center gap-3 text-xs text-gray-600">
+            <div className="flex items-center gap-2 sm:gap-3 text-xs text-gray-600">
               {isPetFriendly && (
                 <span className="flex items-center gap-1 text-green-600 font-medium">
-                  <CheckBadgeIcon className="h-4 w-4" />
-                  Pet Friendly
+                  <CheckBadgeIcon className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+                  <span className="hidden sm:inline">Pet Friendly</span>
+                  <span className="sm:hidden">Pets OK</span>
                 </span>
               )}
               {property.parking && (
-                <span className="truncate">{property.parking}</span>
+                <span className="truncate hidden sm:inline">{property.parking}</span>
               )}
             </div>
 
-            <button className="text-orange font-semibold text-sm group-hover:underline">
+            <button className="text-orange font-semibold text-xs sm:text-sm group-hover:underline flex-shrink-0">
               View Details →
             </button>
           </div>
