@@ -26,6 +26,7 @@ export default function AdminLayout({
   const router = useRouter()
   const pathname = usePathname()
   const { user, isLoading, isAdmin } = useAuth()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     console.log('🔐 Admin Layout Auth Check:', { isLoading, isAdmin, user })
@@ -47,8 +48,6 @@ export default function AdminLayout({
       </div>
     )
   }
-
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (!isAdmin || (user && !user.is_onboarded)) {
     return null
