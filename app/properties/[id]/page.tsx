@@ -8,6 +8,7 @@ import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
 import { BackToSearchButton } from '@/components/property/BackToSearchButton'
 import { PropertyAddressHeading } from '@/components/property/PropertyAddress'
+import { PropertyAuthDetails } from '@/components/property/PropertyAuthDetails'
 import { SimilarPropertyCard } from '@/components/property/SimilarPropertyCard'
 import { formatCurrency } from '@/lib/utils'
 import { extractPlainText } from '@/lib/property-utils'
@@ -57,11 +58,6 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
   if (!property) {
     notFound()
   }
-
-  // Check authentication server-side
-  const supabase = createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const isAuthenticated = !!user
 
   const similarProperties = await getSimilarProperties(property)
   const images = property.media_gallery_urls || []
@@ -240,17 +236,12 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                 propertyAddress={fullAddress}
               />
 
-              {isAuthenticated && property.listing_link && (
-                <a
-                  href={property.listing_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 p-2 text-sm bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors mt-3"
-                >
-                  <LinkIcon className="h-4 w-4 text-navy" />
-                  <span className="text-gray-900">View Original Listing</span>
-                </a>
-              )}
+              <PropertyAuthDetails
+                listingLink={property.listing_link}
+                landlordName={property.landlord_name}
+                landlordEmail={property.landlord_email}
+                landlordPhone={property.landlord_phone}
+              />
             </div>
 
             {/* Share */}
