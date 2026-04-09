@@ -7,12 +7,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
+// Detect server vs browser — SSR has no navigator.locks, localStorage, etc.
+const isServer = typeof window === 'undefined'
+
 // Client-side Supabase client (for use in client components)
+// On the server, disable auth features that require browser APIs (navigator.locks, localStorage)
+// to prevent AbortError during Next.js SSR.
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
+    persistSession: !isServer,
+    autoRefreshToken: !isServer,
+    detectSessionInUrl: !isServer,
     flowType: 'implicit',
   }
 })
