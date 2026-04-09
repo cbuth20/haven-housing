@@ -10,11 +10,18 @@ import { Input } from '@/components/common/Input'
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn } = useAuth()
+  const { signIn, isAuthenticated } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Redirect when authenticated (after signIn or if already logged in)
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/')
+    }
+  }, [isAuthenticated, router])
 
   // Check for magic link error in URL params
   useEffect(() => {
@@ -31,10 +38,10 @@ function LoginContent() {
 
     try {
       await signIn(email, password)
-      router.push('/')
+      // Don't redirect here — the useEffect above handles it
+      // when onAuthStateChange updates isAuthenticated
     } catch (err: any) {
       setError(err.message || 'Failed to sign in')
-    } finally {
       setIsLoading(false)
     }
   }

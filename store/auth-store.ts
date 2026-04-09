@@ -68,27 +68,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signIn: async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
     if (error) throw error
 
-    if (data.user) {
-      const { data: profile, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single()
-
-      if (profileError) throw profileError
-
-      set({
-        user: profile,
-        isAuthenticated: true,
-      })
-    }
+    // Don't fetch profile here — onAuthStateChange(SIGNED_IN) handles it.
+    // Fetching here races with the listener and causes AbortError.
   },
 
   signUp: async (email: string, password: string, fullName: string) => {
