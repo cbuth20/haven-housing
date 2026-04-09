@@ -92,20 +92,4 @@ export const api = {
     }),
   },
 
-  // Photo upload
-  uploadPhotos: async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach(file => formData.append('photos', file))
-
-    const response = await fetch(`${API_BASE}/upload-photos`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!response.ok) {
-      throw new ApiError('Photo upload failed', response.status)
-    }
-
-    return response.json()
-  },
 }
