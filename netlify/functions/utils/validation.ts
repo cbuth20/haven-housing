@@ -21,12 +21,18 @@ export const PropertySchema = z.object({
   furnish_level: z.string().nullable().optional(),
   other_amenities: z.array(z.string()).nullable().optional(),
   landlord_name: z.string().nullable().optional(),
-  landlord_email: z.string().email().nullable().optional(),
+  landlord_email: z.preprocess(
+    (val) => (val === '' ? null : val),
+    z.string().email().nullable().optional()
+  ),
   landlord_phone: z.string().nullable().optional(),
   monthly_rent: z.number().positive().nullable().optional(),
   cover_photo_url: z.string().url().nullable().optional(),
   media_gallery_urls: z.array(z.string().url()).nullable().optional(),
-  listing_link: z.string().url().nullable().optional(),
+  listing_link: z.preprocess(
+    (val) => (val === '' ? null : val),
+    z.string().url().nullable().optional()
+  ),
   property_level: z.string().nullable().optional(),
   featured: z.boolean().default(false),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
