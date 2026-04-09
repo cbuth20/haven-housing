@@ -29,14 +29,10 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
-    console.log('🔐 Admin Layout Auth Check:', { isLoading, isAdmin, user })
     if (!isLoading && !isAdmin) {
-      console.log('❌ Not admin, redirecting to login')
       router.push('/login')
     }
-    // Redirect to onboarding if user hasn't completed setup
     if (!isLoading && user && !user.is_onboarded) {
-      console.log('🔄 User not onboarded, redirecting to /onboard')
       router.push('/onboard')
     }
   }, [isLoading, isAdmin, router, user])

@@ -14,8 +14,6 @@ export function useAuth() {
 
   const isAdmin = user?.role === 'admin'
 
-  console.log('🔐 useAuth:', { user, isLoading, isAuthenticated, isAdmin, userRole: user?.role })
-
   return {
     user,
     isLoading,

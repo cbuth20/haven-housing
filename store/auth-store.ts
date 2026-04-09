@@ -24,27 +24,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialized: false,
 
   initialize: async () => {
-    // Prevent multiple initializations
-    if (get().initialized) {
-      console.log('🔐 Auth already initialized, skipping')
-      return
-    }
+    if (get().initialized) return
 
-    console.log('🔐 Initializing auth...')
-
-    // Always set up the auth listener FIRST, so even if getSession() fails,
-    // subsequent auth events (token refresh, sign-in) will update the state.
+    // Clean up existing listener
     if (authSubscription) {
       authSubscription.data.subscription.unsubscribe()
     }
 
+    // Use onAuthStateChange as the sole initialization mechanism.
+    // Supabase fires INITIAL_SESSION immediately when the listener is registered,
+    // which is more reliable than getSession() (which throws AbortError in some environments).
     authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth state changed:', event)
-
-      // Skip INITIAL_SESSION — getSession() below handles the initial load.
-      // Reacting to it here causes a race condition and AbortError.
-      if (event === 'INITIAL_SESSION') return
-
       try {
         if (session?.user) {
           const { data: profile } = await supabase
@@ -57,54 +47,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             user: profile,
             isAuthenticated: true,
             isLoading: false,
+            initialized: true,
           })
         } else {
           set({
             user: null,
             isAuthenticated: false,
             isLoading: false,
+            initialized: true,
           })
         }
       } catch (error) {
-        console.error('🔐 Auth state change error:', error)
+        // If profile fetch fails, still mark as initialized so app doesn't hang
+        set({
+          isLoading: false,
+          initialized: true,
+        })
       }
     })
-
-    // Load the initial session
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        set({
-          user: profile,
-          isAuthenticated: true,
-          isLoading: false,
-          initialized: true,
-        })
-      } else {
-        set({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-          initialized: true,
-        })
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error)
-      // Mark as initialized so the app doesn't stay in loading state.
-      // The onAuthStateChange listener above will recover auth state
-      // when the session becomes available.
-      set({
-        isLoading: false,
-        initialized: true,
-      })
-    }
   },
 
   signIn: async (email: string, password: string) => {
@@ -122,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         .eq('id', data.user.id)
         .single()
 
-      console.log('🔐 SignIn: Profile fetched:', { profile, profileError })
+      if (profileError) throw profileError
 
       set({
         user: profile,
@@ -152,7 +112,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           id: data.user.id,
           email: data.user.email!,
           full_name: fullName,
-          role: 'client', // Default role
+          role: 'client',
         })
 
       if (profileError) throw profileError
@@ -172,20 +132,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     try {
-      console.log('🔓 Auth store: Signing out...')
       const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('🔓 Auth store: Sign out error:', error)
-        throw error
-      }
-      console.log('🔓 Auth store: Sign out successful')
+      if (error) throw error
       set({
         user: null,
         isAuthenticated: false,
       })
     } catch (error) {
-      console.error('🔓 Auth store: Sign out failed:', error)
-      // Still clear the local state even if Supabase signout fails
+      // Still clear local state even if Supabase signout fails
       set({
         user: null,
         isAuthenticated: false,
