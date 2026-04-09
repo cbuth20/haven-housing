@@ -551,7 +551,7 @@ export function PropertyForm(props: PropertyFormProps) {
           onRemoveExisting={(url) => {
             setExistingPhotos(existingPhotos.filter((u) => u !== url))
           }}
-          maxFiles={10}
+          maxFiles={15}
         />
       </div>
 

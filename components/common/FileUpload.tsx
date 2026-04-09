@@ -15,7 +15,7 @@ interface FileUploadProps {
 
 export function FileUpload({
   onFilesSelected,
-  maxFiles = 10,
+  maxFiles = 15,
   accept = { 'image/*': ['.png', '.jpg', '.jpeg', '.webp'] },
   existingUrls = [],
   onRemoveExisting,
