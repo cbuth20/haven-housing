@@ -11,6 +11,7 @@ import { Textarea } from '@/components/common/Textarea'
 import { Button } from '@/components/common/Button'
 import { FileUpload } from '@/components/common/FileUpload'
 import { useProperties } from '@/hooks/useProperties'
+import { uploadPhotosToStorage } from '@/lib/upload-photos'
 
 const baseSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -87,7 +88,7 @@ export function PropertyForm(props: PropertyFormProps) {
   const onSuccess = props.onSuccess
   const onCancel = mode === 'admin' ? (props as AdminFormProps).onCancel : undefined
 
-  const { createProperty, updateProperty, uploadPhotos, isLoading } = useProperties()
+  const { createProperty, updateProperty, isLoading } = useProperties()
   const [photos, setPhotos] = useState<File[]>([])
   const [existingPhotos, setExistingPhotos] = useState<string[]>(
     property?.media_gallery_urls || []
@@ -120,7 +121,12 @@ export function PropertyForm(props: PropertyFormProps) {
       setSubmitError(null)
 
       if (mode === 'submission') {
-        // Submit as a property submission for review
+        // Upload photos directly to Supabase Storage (submissions/ path)
+        let uploadedUrls: string[] = []
+        if (photos.length > 0) {
+          uploadedUrls = await uploadPhotosToStorage(photos, 'submissions')
+        }
+
         const submissionData = {
           submitterName: data.submitter_name,
           submitterEmail: data.submitter_email,
@@ -143,6 +149,8 @@ export function PropertyForm(props: PropertyFormProps) {
           landlordName: data.landlord_name || '',
           landlordEmail: data.landlord_email || '',
           landlordPhone: data.landlord_phone || '',
+          coverPhotoUrl: uploadedUrls[0] || null,
+          mediaGalleryUrls: uploadedUrls.length > 0 ? uploadedUrls : null,
         }
 
         const response = await fetch('/.netlify/functions/property-submission-create', {
@@ -158,10 +166,10 @@ export function PropertyForm(props: PropertyFormProps) {
         return
       }
 
-      // Admin mode: direct database operation
+      // Admin mode: upload photos directly to Supabase Storage (admin/ path)
       let uploadedUrls: string[] = []
       if (photos.length > 0) {
-        uploadedUrls = await uploadPhotos(photos)
+        uploadedUrls = await uploadPhotosToStorage(photos, 'admin')
       }
 
       const allPhotoUrls = [...existingPhotos, ...uploadedUrls]
