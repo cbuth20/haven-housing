@@ -41,28 +41,36 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔐 Auth state changed:', event)
 
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from('user_profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
+      // Skip INITIAL_SESSION — getSession() below handles the initial load.
+      // Reacting to it here causes a race condition and AbortError.
+      if (event === 'INITIAL_SESSION') return
 
-        set({
-          user: profile,
-          isAuthenticated: true,
-          isLoading: false,
-        })
-      } else {
-        set({
-          user: null,
-          isAuthenticated: false,
-          isLoading: false,
-        })
+      try {
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('user_profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
+
+          set({
+            user: profile,
+            isAuthenticated: true,
+            isLoading: false,
+          })
+        } else {
+          set({
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          })
+        }
+      } catch (error) {
+        console.error('🔐 Auth state change error:', error)
       }
     })
 
-    // Now try to load the initial session
+    // Load the initial session
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
