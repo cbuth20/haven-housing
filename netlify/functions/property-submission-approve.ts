@@ -47,6 +47,8 @@ export const handler: Handler = async (event) => {
         landlord_email: propertyData.landlordEmail,
         landlord_phone: propertyData.landlordPhone,
         listing_link: propertyData.listingLink,
+        cover_photo_url: propertyData.coverPhotoUrl || null,
+        media_gallery_urls: propertyData.mediaGalleryUrls || null,
         status: 'published',
         featured: false,
       })
