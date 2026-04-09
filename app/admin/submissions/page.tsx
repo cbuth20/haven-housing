@@ -118,10 +118,25 @@ export default function SubmissionsPage() {
 
               {selected?.id === sub.id ? (
                 <div className="border-t pt-4 space-y-4">
-                  <div className="bg-gray-50 p-4 rounded text-sm">
+                  <div className="bg-gray-50 p-4 rounded text-sm space-y-3">
                     <p><strong>Address:</strong> {sub.submission_data.streetAddress}</p>
                     <p><strong>Description:</strong> {sub.submission_data.description}</p>
                     <p><strong>Landlord:</strong> {sub.submission_data.landlordName} - {sub.submission_data.landlordEmail}</p>
+                    {sub.submission_data.mediaGalleryUrls && sub.submission_data.mediaGalleryUrls.length > 0 && (
+                      <div>
+                        <strong>Photos ({sub.submission_data.mediaGalleryUrls.length}):</strong>
+                        <div className="grid grid-cols-3 md:grid-cols-4 gap-2 mt-2">
+                          {sub.submission_data.mediaGalleryUrls.map((url: string, i: number) => (
+                            <img
+                              key={i}
+                              src={url}
+                              alt={`Submission photo ${i + 1}`}
+                              className="w-full h-24 object-cover rounded"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {sub.status === 'pending' && (
