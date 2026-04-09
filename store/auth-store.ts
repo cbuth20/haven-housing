@@ -32,6 +32,37 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     console.log('🔐 Initializing auth...')
 
+    // Always set up the auth listener FIRST, so even if getSession() fails,
+    // subsequent auth events (token refresh, sign-in) will update the state.
+    if (authSubscription) {
+      authSubscription.data.subscription.unsubscribe()
+    }
+
+    authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state changed:', event)
+
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+
+        set({
+          user: profile,
+          isAuthenticated: true,
+          isLoading: false,
+        })
+      } else {
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+        })
+      }
+    })
+
+    // Now try to load the initial session
     try {
       const { data: { session } } = await supabase.auth.getSession()
 
@@ -56,39 +87,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           initialized: true,
         })
       }
-
-      // Clean up existing listener
-      if (authSubscription) {
-        authSubscription.data.subscription.unsubscribe()
-      }
-
-      // Listen for auth changes
-      authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('🔐 Auth state changed:', event)
-
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-
-          set({
-            user: profile,
-            isAuthenticated: true,
-          })
-        } else {
-          set({
-            user: null,
-            isAuthenticated: false,
-          })
-        }
-      })
     } catch (error) {
       console.error('Auth initialization error:', error)
+      // Mark as initialized so the app doesn't stay in loading state.
+      // The onAuthStateChange listener above will recover auth state
+      // when the session becomes available.
       set({
-        user: null,
-        isAuthenticated: false,
         isLoading: false,
         initialized: true,
       })
