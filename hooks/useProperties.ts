@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { api } from '@/lib/api'
 import { Property } from '@/types/property'
 
 export function useProperties() {
@@ -143,57 +142,11 @@ export function useProperties() {
     }
   }
 
-  const uploadPhotos = async (files: File[]) => {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const token = await getToken()
-      if (!token) throw new Error('Not authenticated')
-
-      const formData = new FormData()
-      files.forEach(file => formData.append('photos', file))
-
-      const response = await fetch('/.netlify/functions/upload-photos', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      })
-
-      if (!response.ok) {
-        let errorMessage = 'Failed to upload photos'
-        try {
-          const text = await response.text()
-          try {
-            const error = JSON.parse(text)
-            errorMessage = error.message || errorMessage
-          } catch {
-            errorMessage = text || errorMessage
-          }
-        } catch (readError) {
-          console.error('Error reading response:', readError)
-        }
-        throw new Error(errorMessage)
-      }
-
-      const data = await response.json()
-      return data.urls
-    } catch (err: any) {
-      setError(err.message)
-      throw err
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return {
     isLoading,
     error,
     createProperty,
     updateProperty,
     deleteProperty,
-    uploadPhotos,
   }
 }
