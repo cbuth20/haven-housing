@@ -53,6 +53,33 @@ describe('autoMapColumns', () => {
     expect(mapping['Sq Ft']).toBe('square_footage')
   })
 
+  it('handles actual client spreadsheet headers', () => {
+    const clientHeaders = [
+      'Add  ', 'Address 2', 'City', 'State', 'Zip',
+      'Unit Type Final', 'Laundry', 'Pet Policy', 'Parking',
+      'Beds', 'Baths', 'Furnish Level', 'Description',
+      'Other Ammenities', 'Listing Link', "Photo's Link",
+    ]
+    const mapping = autoMapColumns(clientHeaders)
+    expect(mapping['Add  ']).toBe('street_address')
+    expect(mapping['City']).toBe('city')
+    expect(mapping['State']).toBe('state')
+    expect(mapping['Zip']).toBe('zip_code')
+    expect(mapping['Unit Type Final']).toBe('unit_type')
+    expect(mapping['Laundry']).toBe('laundry')
+    expect(mapping['Pet Policy']).toBe('pet_policy')
+    expect(mapping['Parking']).toBe('parking')
+    expect(mapping['Beds']).toBe('beds')
+    expect(mapping['Baths']).toBe('baths')
+    expect(mapping['Furnish Level']).toBe('furnish_level')
+    expect(mapping['Description']).toBe('description')
+    expect(mapping['Other Ammenities']).toBe('other_amenities')
+    expect(mapping['Listing Link']).toBe('listing_link')
+    expect(mapping["Photo's Link"]).toBe('cover_photo_url')
+    // Address 2 has no matching field — should be unmapped
+    expect(mapping['Address 2']).toBeUndefined()
+  })
+
   it('maps all known aliases from COLUMN_ALIASES', () => {
     // Every alias in the dictionary should resolve to its field
     for (const [field, aliases] of Object.entries(COLUMN_ALIASES)) {
