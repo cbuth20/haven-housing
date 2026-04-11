@@ -36,12 +36,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Match working pattern from other projects:
     // onAuthStateChange only — no getSession(), no async DB queries in callback
     authSubscription = supabase.auth.onAuthStateChange((_event, session) => {
+      const currentUser = get().user
       set({
         session,
         isAuthenticated: !!session?.user,
-        // If no session, we're done loading. If session exists,
-        // keep loading until profile is fetched (useAuth handles this).
-        isLoading: !!session?.user,
+        // Only keep loading if session exists AND profile hasn't been fetched yet.
+        // If user is already loaded (e.g. TOKEN_REFRESHED on tab focus), don't
+        // reset to loading state — that causes an infinite spinner.
+        isLoading: !!session?.user && !currentUser,
         initialized: true,
       })
     })
