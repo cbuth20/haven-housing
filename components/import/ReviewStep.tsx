@@ -35,6 +35,8 @@ interface ReviewStepProps {
   onImportComplete: (summary: { created: number; updated: number; skipped: number; errors: { index: number; message: string }[] }) => void
 }
 
+type StatusFilter = 'all' | 'ready' | 'duplicate' | 'error'
+
 const BATCH_SIZE = 50
 
 export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }: ReviewStepProps) {
@@ -44,6 +46,7 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
   const [isImporting, setIsImporting] = useState(false)
   const [importProgress, setImportProgress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
 
   // Transform all rows and run client-side validation, then server-side duplicate check
   useEffect(() => {
@@ -107,6 +110,13 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
     const total = ready + selectedDuplicates
     return { ready, duplicates, errors, selectedDuplicates, total }
   }, [rowStates])
+
+  const filteredRowStates = useMemo(() => {
+    if (statusFilter === 'all') return rowStates.map((r, i) => ({ ...r, originalIndex: i }))
+    return rowStates
+      .map((r, i) => ({ ...r, originalIndex: i }))
+      .filter((r) => r.serverStatus === statusFilter)
+  }, [rowStates, statusFilter])
 
   const toggleRow = useCallback((index: number) => {
     setRowStates((prev) => {
@@ -214,20 +224,44 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
         </p>
       </div>
 
-      {/* Summary bar */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+      {/* Summary bar — click to filter */}
+      <div className="grid grid-cols-4 gap-3">
+        <button
+          onClick={() => setStatusFilter('all')}
+          className={`rounded-lg p-3 text-center transition-all ${
+            statusFilter === 'all' ? 'ring-2 ring-navy bg-navy/5' : 'bg-gray-50 border border-gray-200 hover:shadow-md'
+          }`}
+        >
+          <p className="text-2xl font-bold text-navy">{rowStates.length}</p>
+          <p className="text-xs text-gray-600">All</p>
+        </button>
+        <button
+          onClick={() => setStatusFilter('ready')}
+          className={`rounded-lg p-3 text-center transition-all ${
+            statusFilter === 'ready' ? 'ring-2 ring-green-500 bg-green-50' : 'bg-green-50 border border-green-200 hover:shadow-md'
+          }`}
+        >
           <p className="text-2xl font-bold text-green-700">{stats.ready}</p>
           <p className="text-xs text-green-600">Ready</p>
-        </div>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
+        </button>
+        <button
+          onClick={() => setStatusFilter('duplicate')}
+          className={`rounded-lg p-3 text-center transition-all ${
+            statusFilter === 'duplicate' ? 'ring-2 ring-yellow-500 bg-yellow-50' : 'bg-yellow-50 border border-yellow-200 hover:shadow-md'
+          }`}
+        >
           <p className="text-2xl font-bold text-yellow-700">{stats.duplicates}</p>
           <p className="text-xs text-yellow-600">Duplicates</p>
-        </div>
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+        </button>
+        <button
+          onClick={() => setStatusFilter('error')}
+          className={`rounded-lg p-3 text-center transition-all ${
+            statusFilter === 'error' ? 'ring-2 ring-red-500 bg-red-50' : 'bg-red-50 border border-red-200 hover:shadow-md'
+          }`}
+        >
           <p className="text-2xl font-bold text-red-700">{stats.errors}</p>
           <p className="text-xs text-red-600">Errors</p>
-        </div>
+        </button>
       </div>
 
       {/* Batch duplicate actions */}
@@ -247,6 +281,11 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
       )}
 
       {/* Row list */}
+      {statusFilter !== 'all' && (
+        <p className="text-xs text-gray-500">
+          Showing {filteredRowStates.length} {statusFilter} row{filteredRowStates.length !== 1 ? 's' : ''} of {rowStates.length} total
+        </p>
+      )}
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden max-h-[500px] overflow-y-auto">
         <table className="w-full">
           <thead className="sticky top-0 bg-gray-50 z-10">
@@ -262,10 +301,10 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
             </tr>
           </thead>
           <tbody>
-            {rowStates.map((row, index) => (
+            {filteredRowStates.map((row) => (
               <RowEntry
-                key={index}
-                index={index}
+                key={row.originalIndex}
+                index={row.originalIndex}
                 row={row}
                 onToggleSelect={toggleRow}
                 onToggleExpand={toggleExpand}
@@ -345,7 +384,14 @@ function RowEntry({
             {statusBadge.label}
           </span>
         </td>
-        <td className="px-3 py-2 text-sm text-gray-900 truncate max-w-[200px]">{row.data.street_address || '—'}</td>
+        <td className="px-3 py-2 text-sm text-gray-900 truncate max-w-[200px]">
+          {row.data.street_address || '—'}
+          {row.serverStatus === 'error' && (
+            <p className="text-xs text-red-600 mt-0.5">
+              {(row.serverErrors || row.clientValidation.errors).join(', ')}
+            </p>
+          )}
+        </td>
         <td className="px-3 py-2 text-sm text-gray-600">{row.data.city || '—'}</td>
         <td className="px-3 py-2 text-sm text-gray-600">{row.data.state || '—'}</td>
         <td className="px-3 py-2 text-sm text-gray-600">{row.data.beds ?? '—'}</td>
