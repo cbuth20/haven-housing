@@ -16,11 +16,13 @@ import {
   TrashIcon,
   XMarkIcon,
   StarIcon,
+  ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { useProperties } from '@/hooks/useProperties'
 import { usePropertySearch } from '@/hooks/usePropertySearch'
 import Image from 'next/image'
+import Link from 'next/link'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
 
 const STATUS_CHIPS = [
@@ -333,9 +335,19 @@ export default function PropertiesPage() {
             <span className="font-semibold text-navy">{stats.total.toLocaleString()}</span> total properties in database
           </p>
         </div>
-        <Button variant="primary" size="sm" onClick={handleCreateNew}>
-          Add Property
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link href="/admin/properties/import">
+            <Button variant="outline" size="sm">
+              <span className="flex items-center gap-1.5">
+                <ArrowUpTrayIcon className="h-4 w-4" />
+                Import CSV
+              </span>
+            </Button>
+          </Link>
+          <Button variant="primary" size="sm" onClick={handleCreateNew}>
+            Add Property
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

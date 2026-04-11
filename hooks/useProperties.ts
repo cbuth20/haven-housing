@@ -142,11 +142,89 @@ export function useProperties() {
     }
   }
 
+  const bulkValidate = async (properties: Partial<Property>[]) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const response = await fetch('/.netlify/functions/properties-bulk-validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ properties }),
+      })
+      if (!response.ok) {
+        let errorMessage = 'Failed to validate properties'
+        try {
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
+      }
+      return await response.json()
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const bulkCreate = async (rows: { action: string; existingId?: string; data: Partial<Property> }[]) => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      const response = await fetch('/.netlify/functions/properties-bulk-create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rows }),
+      })
+      if (!response.ok) {
+        let errorMessage = 'Failed to import properties'
+        try {
+          const text = await response.text()
+          try {
+            const error = JSON.parse(text)
+            errorMessage = error.message || errorMessage
+          } catch {
+            errorMessage = text || errorMessage
+          }
+        } catch (readError) {
+          console.error('Error reading response:', readError)
+        }
+        throw new Error(errorMessage)
+      }
+      return await response.json()
+    } catch (err: any) {
+      setError(err.message)
+      throw err
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     isLoading,
     error,
     createProperty,
     updateProperty,
     deleteProperty,
+    bulkValidate,
+    bulkCreate,
   }
 }
