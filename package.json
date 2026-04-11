@@ -7,6 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "seed": "tsx scripts/seed-properties.ts",
     "migrate:validate": "tsx scripts/migrate-wix/migrate.ts --mode validate",
     "migrate:test": "tsx scripts/migrate-wix/migrate.ts --mode test",
@@ -43,6 +45,7 @@
     "dotenv": "^17.2.4",
     "next": "^16.1.6",
     "p-limit": "^7.3.0",
+    "papaparse": "^5.5.3",
     "parse-multipart-data": "^1.5.0",
     "postmark": "^4.0.7",
     "react": "^19.2.4",
@@ -59,12 +62,14 @@
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/postcss": "^4.1.18",
     "@tailwindcss/typography": "^0.5.19",
+    "@types/papaparse": "^5.5.2",
     "autoprefixer": "^10.4.24",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.6",
     "netlify-cli": "^23.15.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "vitest": "^4.1.4"
   }
 }
