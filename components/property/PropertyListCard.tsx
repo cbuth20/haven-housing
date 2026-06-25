@@ -5,6 +5,7 @@ import { HomeIcon, MapPinIcon, CurrencyDollarIcon, CheckBadgeIcon, SparklesIcon 
 import { HomeIcon as HomeIconSolid, SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
+import { formatCurrency } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
 
 interface PropertyListCardProps {
@@ -67,10 +68,10 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
             )}
           </div>
 
-          {/* Price badge on mobile (overlaid on image) */}
-          {property.monthly_rent && (
+          {/* Price badge on mobile (overlaid on image) — hidden from logged-out visitors */}
+          {isAuthenticated && property.monthly_rent && (
             <div className="sm:hidden absolute bottom-2 left-2 bg-navy/90 backdrop-blur text-white px-2.5 py-1 rounded-lg shadow-lg">
-              <span className="text-base font-bold">${property.monthly_rent.toLocaleString()}</span>
+              <span className="text-base font-bold">{formatCurrency(property.monthly_rent)}</span>
               <span className="text-xs opacity-80">/mo</span>
             </div>
           )}
@@ -91,11 +92,11 @@ export function PropertyListCard({ property, onClick, showDistance = false }: Pr
               <h3 className="text-base sm:text-lg font-semibold text-navy group-hover:text-orange transition-colors line-clamp-1 flex-1">
                 {title}
               </h3>
-              {/* Price on desktop only (inline) */}
-              {property.monthly_rent && (
+              {/* Price on desktop only (inline) — hidden from logged-out visitors */}
+              {isAuthenticated && property.monthly_rent && (
                 <div className="hidden sm:block flex-shrink-0">
                   <p className="text-xl font-bold text-navy">
-                    ${property.monthly_rent.toLocaleString()}
+                    {formatCurrency(property.monthly_rent)}
                   </p>
                   <p className="text-xs text-gray-500 text-right">per month</p>
                 </div>

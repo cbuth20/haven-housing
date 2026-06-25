@@ -148,7 +148,7 @@ export const MapView = memo(function MapView({
                 : ''
             }
             ${
-              property.monthly_rent
+              isAuthenticated && property.monthly_rent
                 ? `<p style="color: #063665; font-weight: bold; font-size: 18px; margin-bottom: 8px;">
                 ${formatCurrency(property.monthly_rent)}/mo
               </p>`

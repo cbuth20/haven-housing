@@ -6,6 +6,28 @@ const SORT_ALLOWLIST = [
   'square_footage', 'status', 'created_at', 'updated_at', 'unit_type', 'featured',
 ]
 
+// Fields stripped from the search response for unauthenticated callers so the
+// value never reaches the browser (UI gating alone leaves it readable in the
+// network response). Scoped to monthly_rent for now.
+//
+// NOTE: the UI also hides street_address/zip_code and landlord_* / listing_link
+// from logged-out visitors, but those are intentionally NOT stripped here yet:
+// the public PropertyListCard builds its logged-out title from zip_code, so
+// blindly redacting these would break the anonymous UI. Fully aligning the
+// server payload with the UI trust boundary is deferred follow-up work (same
+// class as the detail-page RSC payload limitation).
+const AUTH_ONLY_FIELDS = ['monthly_rent'] as const
+
+function redactForAnon<T extends Record<string, any>>(rows: T[]): T[] {
+  return rows.map((row) => {
+    const copy = { ...row }
+    for (const field of AUTH_ONLY_FIELDS) {
+      delete copy[field]
+    }
+    return copy
+  })
+}
+
 const handler = optionalAuth(async (event: OptionalAuthEvent) => {
   if (event.httpMethod !== 'POST') {
     return {
@@ -64,9 +86,11 @@ const handler = optionalAuth(async (event: OptionalAuthEvent) => {
         }
       }
 
+      const properties = event.userId ? (data || []) : redactForAnon(data || [])
+
       return {
         statusCode: 200,
-        body: JSON.stringify({ properties: data || [], count: data?.length || 0 }),
+        body: JSON.stringify({ properties, count: data?.length || 0 }),
       }
     }
 
@@ -124,9 +148,11 @@ const handler = optionalAuth(async (event: OptionalAuthEvent) => {
       }
     }
 
+    const properties = event.userId ? (data || []) : redactForAnon(data || [])
+
     return {
       statusCode: 200,
-      body: JSON.stringify({ properties: data || [], count: count ?? data?.length ?? 0 }),
+      body: JSON.stringify({ properties, count: count ?? data?.length ?? 0 }),
     }
   } catch (error: any) {
     console.error('Error searching properties:', error)

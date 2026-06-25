@@ -90,7 +90,7 @@ export function PropertyList({ properties, onPropertyClick }: PropertyListProps)
                     <h3 className="text-xl font-heading font-bold text-navy">
                       {getPropertyDisplayTitle(property)}
                     </h3>
-                    {property.monthly_rent && (
+                    {isAuthenticated && property.monthly_rent && (
                       <p className="text-xl font-bold text-navy ml-4">
                         ${property.monthly_rent.toLocaleString()}/mo
                       </p>

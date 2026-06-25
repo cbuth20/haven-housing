@@ -44,7 +44,7 @@ export function SimilarPropertyCard({ property }: SimilarPropertyCardProps) {
         <p className="text-sm text-gray-600 mb-2">
           {city}, {state}
         </p>
-        {property.monthly_rent && (
+        {isAuthenticated && property.monthly_rent && (
           <p className="text-lg font-bold text-navy">
             {formatCurrency(property.monthly_rent)}/mo
           </p>

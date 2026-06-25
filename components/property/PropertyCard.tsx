@@ -3,6 +3,7 @@ import { formatCurrency } from '@/lib/utils'
 import { getPropertyDisplayTitle, extractPlainText } from '@/lib/property-utils'
 import { MapPinIcon, HomeIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
+import { AuthOnly } from '@/components/common/AuthOnly'
 
 interface PropertyCardProps {
   property: Property
@@ -72,10 +73,12 @@ export function PropertyCard({
         </div>
 
         {property.monthly_rent && (
-          <div className="flex items-center text-lg font-semibold text-navy mb-3">
-            <CurrencyDollarIcon className="h-5 w-5 mr-1" />
-            {formatCurrency(property.monthly_rent)}/mo
-          </div>
+          <AuthOnly>
+            <div className="flex items-center text-lg font-semibold text-navy mb-3">
+              <CurrencyDollarIcon className="h-5 w-5 mr-1" />
+              {formatCurrency(property.monthly_rent)}/mo
+            </div>
+          </AuthOnly>
         )}
 
         {showActions && (

@@ -21,7 +21,7 @@ function PropertiesPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated } = useAuth()
-  const { properties, isLoading, error, searchProperties } = usePropertySearch()
+  const { properties, isLoading, error, searchProperties } = usePropertySearch({ includeAuth: true })
   const [mapCenter, setMapCenter] = useState(LA_CENTER)
   const [mapZoom, setMapZoom] = useState(10)
   const [initialLoadDone, setInitialLoadDone] = useState(false)

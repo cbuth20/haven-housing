@@ -1,7 +1,7 @@
 'use client'
 
-import { useAuth } from '@/hooks/useAuth'
 import { LinkIcon, UserIcon, EnvelopeIcon, PhoneIcon } from '@heroicons/react/24/outline'
+import { AuthOnly } from '@/components/common/AuthOnly'
 
 interface PropertyAuthDetailsProps {
   listingLink: string | null
@@ -16,14 +16,10 @@ export function PropertyAuthDetails({
   landlordEmail,
   landlordPhone,
 }: PropertyAuthDetailsProps) {
-  const { isAuthenticated } = useAuth()
-
-  if (!isAuthenticated) return null
-
   const hasLandlordInfo = landlordName || landlordEmail || landlordPhone
 
   return (
-    <>
+    <AuthOnly>
       {listingLink && (
         <a
           href={listingLink}
@@ -65,6 +61,6 @@ export function PropertyAuthDetails({
           </div>
         </div>
       )}
-    </>
+    </AuthOnly>
   )
 }

@@ -3,12 +3,13 @@ import { createServerClient } from '@/lib/supabase'
 import { Property } from '@/types/property'
 import { PropertyGallery } from '@/components/property/PropertyGallery'
 import { PropertyAmenities } from '@/components/property/PropertyAmenities'
-import { MapView } from '@/components/maps/MapView'
+import { PropertyLocationMap } from '@/components/property/PropertyLocationMap'
 import { Button } from '@/components/common/Button'
 import { RequestToBookButton } from '@/components/property/RequestToBookButton'
 import { BackToSearchButton } from '@/components/property/BackToSearchButton'
 import { PropertyAddressHeading } from '@/components/property/PropertyAddress'
 import { PropertyAuthDetails } from '@/components/property/PropertyAuthDetails'
+import { AuthOnly } from '@/components/common/AuthOnly'
 import { SimilarPropertyCard } from '@/components/property/SimilarPropertyCard'
 import { formatCurrency } from '@/lib/utils'
 import { extractPlainText } from '@/lib/property-utils'
@@ -24,6 +25,13 @@ interface PropertyPageProps {
   }>
 }
 
+// NOTE: monthly_rent (and landlord/contact fields) are gated from logged-out
+// visitors in the UI only (see <AuthOnly> / PropertyAuthDetails). This server
+// component cannot strip them per-request because auth is client-only
+// (implicit flow, no session cookie), so the values still ship in this single
+// property's serialized payload. The bulk exposure via properties-search is
+// closed server-side. Truly redacting here requires cookie-based SSR auth
+// (@supabase/ssr) or client-fetching the gated fields for authenticated users.
 async function getProperty(id: string): Promise<Property | null> {
   const supabase = createServerClient()
   const { data, error } = await supabase
@@ -135,12 +143,14 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                   </div>
                 )}
                 {property.monthly_rent && (
-                  <div>
-                    <p className="text-sm text-gray-600">Monthly Rent</p>
-                    <p className="text-2xl font-bold text-navy">
-                      {formatCurrency(property.monthly_rent)}
-                    </p>
-                  </div>
+                  <AuthOnly>
+                    <div>
+                      <p className="text-sm text-gray-600">Monthly Rent</p>
+                      <p className="text-2xl font-bold text-navy">
+                        {formatCurrency(property.monthly_rent)}
+                      </p>
+                    </div>
+                  </AuthOnly>
                 )}
               </div>
 
@@ -187,15 +197,7 @@ export default async function PropertyDetailPage({ params }: PropertyPageProps) 
                   <h2 className="text-xl font-heading font-bold text-navy mb-4">
                     Location
                   </h2>
-                  <MapView
-                    properties={[property]}
-                    center={{
-                      lat: Number(property.latitude),
-                      lng: Number(property.longitude),
-                    }}
-                    zoom={15}
-                    className="w-full h-96"
-                  />
+                  <PropertyLocationMap property={property} />
                 </div>
 
                 {/* Walk Score */}
