@@ -29,6 +29,7 @@ const baseSchema = z.object({
   pet_policy: z.string().nullable().optional(),
   parking: z.string().nullable().optional(),
   furnish_level: z.string().nullable().optional(),
+  other_amenities: z.string().nullable().optional(),
   landlord_name: z.string().nullable().optional(),
   landlord_email: z.string().email().or(z.literal('')).nullable().optional(),
   landlord_phone: z.string().nullable().optional(),
@@ -66,6 +67,33 @@ type AdminFormData = z.infer<typeof adminSchema>
 type SubmissionFormData = z.infer<typeof submissionSchema>
 type PropertyFormData = AdminFormData | SubmissionFormData
 
+// Parse the "Other Amenities" free-text field into a string[] for storage.
+// Mirrors the bulk CSV import (lib/csv-import.ts): try a JSON array first,
+// otherwise comma-split, trimming and dropping empties.
+function parseAmenitiesInput(value: unknown): string[] | null {
+  if (Array.isArray(value)) {
+    const arr = value.map((s) => String(s).trim()).filter(Boolean)
+    return arr.length ? arr : null
+  }
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  // JSON array first (mirrors lib/csv-import.ts: only attempt when it looks like one)
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) {
+        const arr = parsed.map((s) => String(s).trim()).filter(Boolean)
+        return arr.length ? arr : null
+      }
+    } catch {
+      // not valid JSON — fall through to comma-split
+    }
+  }
+  const arr = trimmed.split(',').map((s) => s.trim()).filter(Boolean)
+  return arr.length ? arr : null
+}
+
 interface AdminFormProps {
   mode?: 'admin'
   property?: Property
@@ -102,6 +130,17 @@ export function PropertyForm(props: PropertyFormProps) {
 
   const schema = mode === 'admin' ? adminSchema : submissionSchema
 
+  // Pre-fill the Other Amenities text input from the stored array. Use a clean
+  // comma-joined string normally, but fall back to a JSON array when any value
+  // itself contains a comma, so parseAmenitiesInput round-trips it losslessly
+  // (a comma-containing value can't survive comma-delimited text otherwise).
+  const amenitiesDefault = (() => {
+    // Coerce defensively (mirrors parseAmenitiesInput) so a malformed stored
+    // value pre-fills as text instead of crashing the edit-form render.
+    const arr = (property?.other_amenities ?? []).map((a) => String(a))
+    return arr.some((a) => a.includes(',')) ? JSON.stringify(arr) : arr.join(', ')
+  })()
+
   const {
     register,
     handleSubmit,
@@ -109,10 +148,16 @@ export function PropertyForm(props: PropertyFormProps) {
     reset,
   } = useForm<any>({
     resolver: zodResolver(schema),
-    defaultValues: property || {
-      ...(mode === 'admin' ? { status: 'draft', featured: false } : {}),
-      country: 'USA',
-    },
+    defaultValues: property
+      ? {
+          ...property,
+          // Array field → text for the input (see amenitiesDefault)
+          other_amenities: amenitiesDefault,
+        }
+      : {
+          ...(mode === 'admin' ? { status: 'draft', featured: false } : {}),
+          country: 'USA',
+        },
   })
 
   const onSubmit = async (data: any) => {
@@ -145,6 +190,7 @@ export function PropertyForm(props: PropertyFormProps) {
           parking: data.parking || '',
           laundry: data.laundry || '',
           furnishLevel: data.furnish_level || '',
+          otherAmenities: parseAmenitiesInput(data.other_amenities),
           listingLink: data.listing_link || '',
           landlordName: data.landlord_name || '',
           landlordEmail: data.landlord_email || '',
@@ -181,6 +227,7 @@ export function PropertyForm(props: PropertyFormProps) {
         baths: data.baths ? Number(data.baths) : null,
         square_footage: data.square_footage ? Number(data.square_footage) : null,
         monthly_rent: data.monthly_rent ? Number(data.monthly_rent) : null,
+        other_amenities: parseAmenitiesInput(data.other_amenities),
         cover_photo_url: finalCoverPhoto,
         media_gallery_urls: allPhotoUrls,
       }
@@ -496,6 +543,16 @@ export function PropertyForm(props: PropertyFormProps) {
             options={furnishOptions}
             required={mode === 'submission'}
           />
+
+          <div className="md:col-span-2">
+            <Input
+              label="Other Amenities"
+              {...register('other_amenities')}
+              error={errors.other_amenities?.message as string}
+              placeholder="Pool, Gym, Balcony, In-Unit Washer/Dryer"
+              helperText="Separate amenities with commas"
+            />
+          </div>
         </div>
       </div>
 

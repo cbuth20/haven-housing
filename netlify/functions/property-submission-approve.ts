@@ -43,6 +43,7 @@ export const handler: Handler = async (event) => {
         parking: propertyData.parking,
         laundry: propertyData.laundry,
         furnish_level: propertyData.furnishLevel,
+        other_amenities: propertyData.otherAmenities || null,
         landlord_name: propertyData.landlordName,
         landlord_email: propertyData.landlordEmail,
         landlord_phone: propertyData.landlordPhone,

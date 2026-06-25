@@ -20,6 +20,9 @@ function formatPropertyDetails(data: Record<string, any>): string {
   if (data.furnishLevel) lines.push(`Furnishing: ${data.furnishLevel}`)
   if (data.parking) lines.push(`Parking: ${data.parking}`)
   if (data.laundry) lines.push(`Laundry: ${data.laundry}`)
+  if (Array.isArray(data.otherAmenities) && data.otherAmenities.length) {
+    lines.push(`Other Amenities: ${data.otherAmenities.join(', ')}`)
+  }
   if (data.listingLink) lines.push(`Listing Link: ${data.listingLink}`)
   lines.push('')
   lines.push('--- Description ---')
@@ -123,6 +126,9 @@ export const handler: Handler = async (event) => {
         'Furnishing': data.furnishLevel || 'N/A',
         'Parking': data.parking || 'N/A',
         'Laundry': data.laundry || 'N/A',
+        'Other Amenities': Array.isArray(data.otherAmenities) && data.otherAmenities.length
+          ? data.otherAmenities.join(', ')
+          : 'N/A',
         'Listing Link': data.listingLink || 'N/A',
         'Description': data.description,
         'Landlord Name': data.landlordName,
