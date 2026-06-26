@@ -12,7 +12,7 @@ interface AuthState {
   initialize: () => void
   setUser: (user: UserProfile | null) => void
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, fullName: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string) => Promise<{ needsConfirmation: boolean }>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -73,19 +73,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (error) throw error
 
-    if (data.user) {
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: data.user.id,
-          email: data.user.email!,
-          full_name: fullName,
-          role: 'client',
-        })
-
-      if (profileError) throw profileError
-    }
-    // onAuthStateChange handles setting session state
+    // The user_profiles row is created automatically by the on_auth_user_created
+    // DB trigger (handle_new_user), which runs SECURITY DEFINER and reads full_name
+    // from raw_user_meta_data. A client-side insert here is redundant and fails RLS
+    // when email confirmation is on (no session → auth.uid() is null).
+    //
+    // If a session came back, the user is logged in immediately (confirmation off);
+    // otherwise they must confirm their email before signing in. onAuthStateChange
+    // handles session state.
+    return { needsConfirmation: !data.session }
   },
 
   signOut: async () => {

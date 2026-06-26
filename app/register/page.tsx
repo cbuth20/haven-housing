@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirmEmail, setConfirmEmail] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,13 +35,36 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      await signUp(email, password, fullName)
-      router.push('/')
+      const { needsConfirmation } = await signUp(email, password, fullName)
+      if (needsConfirmation) {
+        // Email confirmation is on: no session yet, so don't redirect into a
+        // logged-out homepage — tell the user to confirm their email.
+        setConfirmEmail(true)
+      } else {
+        router.push('/')
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to create account')
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (confirmEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full text-center space-y-4">
+          <h2 className="text-3xl font-heading font-bold text-navy">Check your email</h2>
+          <p className="text-gray-600">
+            We sent a confirmation link to <span className="font-medium text-navy">{email}</span>.
+            Click it to activate your account, then sign in.
+          </p>
+          <Link href="/login" className="inline-block font-medium text-orange hover:text-orange-600">
+            Go to sign in
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
