@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Property } from '@/types/property'
 import { Modal } from '@/components/common/Modal'
 import { Button } from '@/components/common/Button'
@@ -15,6 +15,10 @@ import {
   XCircleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ArrowTopRightOnSquareIcon,
+  ClipboardDocumentIcon,
+  CheckIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
@@ -35,8 +39,26 @@ export function PropertyDetailsModal({
   onDelete,
 }: PropertyDetailsModalProps) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [origin, setOrigin] = useState('')
+  const [copied, setCopied] = useState<string | null>(null)
+
+  // Resolve the live origin client-side (avoids hydration mismatch). When the
+  // dashboard is served from the production domain, this is the live site URL.
+  useEffect(() => {
+    if (typeof window !== 'undefined') setOrigin(window.location.origin)
+  }, [])
+
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard?.writeText(text).then(() => {
+      setCopied(key)
+      setTimeout(() => setCopied(null), 2000)
+    })
+  }
 
   if (!property) return null
+
+  const livePath = `/properties/${property.id}`
+  const liveUrl = `${origin}${livePath}`
 
   const images = [
     property.cover_photo_url,
@@ -311,6 +333,63 @@ export function PropertyDetailsModal({
         {/* Metadata */}
         <div className="pt-4 border-t space-y-3">
           <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider">System Information</h3>
+
+          {/* Live site page */}
+          <div className="flex items-start gap-2">
+            <LinkIcon className="h-4 w-4 flex-shrink-0 text-orange mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-gray-500">Live Page</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <a
+                  href={livePath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-xs text-orange hover:underline break-all"
+                >
+                  {liveUrl}
+                  <ArrowTopRightOnSquareIcon className="h-3.5 w-3.5 inline-block ml-1 align-text-bottom" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(liveUrl, 'url')}
+                  className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-navy hover:bg-gray-100 active:bg-gray-200 rounded px-2 py-1.5 -ml-1 transition-colors"
+                  title="Copy live URL"
+                >
+                  {copied === 'url' ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-green-600" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                  )}
+                  {copied === 'url' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Property ID */}
+          <div className="flex items-start gap-2">
+            <CheckCircleIcon className="h-4 w-4 flex-shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-gray-500">Property ID</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-mono text-xs text-gray-700 break-all">{property.id}</span>
+                <button
+                  type="button"
+                  onClick={() => copyToClipboard(property.id, 'id')}
+                  className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-navy hover:bg-gray-100 active:bg-gray-200 rounded px-2 py-1.5 -ml-1 transition-colors"
+                  title="Copy property ID"
+                >
+                  {copied === 'id' ? (
+                    <CheckIcon className="h-3.5 w-3.5 text-green-600" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                  )}
+                  {copied === 'id' ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-3 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4 flex-shrink-0" />
@@ -345,13 +424,6 @@ export function PropertyDetailsModal({
                 </div>
               </div>
             )}
-            <div className="flex items-center gap-2">
-              <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
-              <div>
-                <p className="text-xs text-gray-500">Property ID</p>
-                <p className="font-mono text-xs">{property.id.substring(0, 24)}...</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
