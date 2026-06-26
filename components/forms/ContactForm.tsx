@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Button } from '@/components/common/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
+import { Honeypot, HONEYPOT_NAME } from '@/components/common/Honeypot'
 
 const schema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -21,6 +22,7 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const honeypotRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -39,7 +41,7 @@ export function ContactForm() {
       const response = await fetch('/.netlify/functions/form-submit-contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, [HONEYPOT_NAME]: honeypotRef.current?.value || '' }),
       })
 
       if (!response.ok) throw new Error('Failed to submit')
@@ -71,6 +73,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Honeypot ref={honeypotRef} />
       {submitError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{submitError}</p>

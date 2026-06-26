@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -12,6 +12,7 @@ import { Button } from '@/components/common/Button'
 import { FileUpload } from '@/components/common/FileUpload'
 import { useProperties } from '@/hooks/useProperties'
 import { uploadPhotosToStorage } from '@/lib/upload-photos'
+import { Honeypot, HONEYPOT_NAME } from '@/components/common/Honeypot'
 
 const baseSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -127,6 +128,7 @@ export function PropertyForm(props: PropertyFormProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const honeypotRef = useRef<HTMLInputElement>(null)
 
   const schema = mode === 'admin' ? adminSchema : submissionSchema
 
@@ -197,6 +199,7 @@ export function PropertyForm(props: PropertyFormProps) {
           landlordPhone: data.landlord_phone || '',
           coverPhotoUrl: uploadedUrls[0] || null,
           mediaGalleryUrls: uploadedUrls.length > 0 ? uploadedUrls : null,
+          [HONEYPOT_NAME]: honeypotRef.current?.value || '',
         }
 
         const response = await fetch('/.netlify/functions/property-submission-create', {
@@ -358,6 +361,7 @@ export function PropertyForm(props: PropertyFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <Honeypot ref={honeypotRef} />
       {submitError && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{submitError}</p>

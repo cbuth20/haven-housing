@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/common/Button'
 import { Input } from '@/components/common/Input'
+import { Honeypot } from '@/components/common/Honeypot'
+import { Turnstile, TURNSTILE_ENABLED, type TurnstileHandle } from '@/components/common/Turnstile'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -17,10 +19,20 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [confirmEmail, setConfirmEmail] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState('')
+  const honeypotRef = useRef<HTMLInputElement>(null)
+  const turnstileRef = useRef<TurnstileHandle>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Honeypot: a filled hidden field means a bot. Silently stop without
+    // creating an account, but show the same neutral screen a human would see.
+    if (honeypotRef.current?.value) {
+      setConfirmEmail(true)
+      return
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match')
@@ -32,10 +44,15 @@ export default function RegisterPage() {
       return
     }
 
+    if (TURNSTILE_ENABLED && !captchaToken) {
+      setError('Please complete the verification challenge')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      const { needsConfirmation } = await signUp(email, password, fullName)
+      const { needsConfirmation } = await signUp(email, password, fullName, captchaToken || undefined)
       if (needsConfirmation) {
         // Email confirmation is on: no session yet, so don't redirect into a
         // logged-out homepage — tell the user to confirm their email.
@@ -44,6 +61,10 @@ export default function RegisterPage() {
         router.push('/')
       }
     } catch (err: any) {
+      // Turnstile tokens are single-use; reset the widget so retry gets a fresh
+      // challenge (clearing state alone leaves the widget stuck on "solved").
+      setCaptchaToken('')
+      turnstileRef.current?.reset()
       setError(err.message || 'Failed to create account')
     } finally {
       setIsLoading(false)
@@ -82,6 +103,7 @@ export default function RegisterPage() {
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <Honeypot ref={honeypotRef} />
           {error && (
             <div className="rounded-md bg-red-50 p-4">
               <div className="text-sm text-red-800">{error}</div>
@@ -126,6 +148,12 @@ export default function RegisterPage() {
               placeholder="Confirm your password"
             />
           </div>
+
+          <Turnstile
+            ref={turnstileRef}
+            onVerify={(token) => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken('')}
+          />
 
           <div>
             <Button

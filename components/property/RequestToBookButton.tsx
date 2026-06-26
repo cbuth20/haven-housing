@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/common/Button'
 import { CalendarDaysIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Honeypot, HONEYPOT_NAME } from '@/components/common/Honeypot'
 
 interface RequestToBookButtonProps {
   propertyTitle: string
@@ -13,6 +14,7 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
   const [showModal, setShowModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const honeypotRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -50,6 +52,7 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
           phone: formData.phone,
           subject: `Request to Book: ${propertyTitle}`,
           message: messageText,
+          [HONEYPOT_NAME]: honeypotRef.current?.value || '',
         }),
       })
 
@@ -110,6 +113,7 @@ export function RequestToBookButton({ propertyTitle, propertyAddress }: RequestT
                 <p className="text-sm text-gray-500 mb-6">{propertyTitle}</p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  <Honeypot ref={honeypotRef} />
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
                     <input

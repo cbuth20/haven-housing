@@ -2,6 +2,7 @@ import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { GovernmentFormSchema } from './utils/validation'
 import { sendFormNotification } from './utils/notification-service'
+import { isBotSubmission } from './utils/honeypot'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -13,6 +14,11 @@ const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}')
+
+    // Honeypot: silently accept bot submissions without processing
+    if (isBotSubmission(body)) {
+      return { statusCode: 201, body: JSON.stringify({ message: 'Form submitted successfully' }) }
+    }
 
     // Validate form data
     const validatedData = GovernmentFormSchema.parse(body)

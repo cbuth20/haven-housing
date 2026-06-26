@@ -3,6 +3,7 @@ import { supabaseAdmin } from './utils/supabase-client'
 import { ContactFormSchema } from './utils/validation'
 import { createSalesforceClient } from './utils/salesforce-client'
 import { sendFormNotification } from './utils/notification-service'
+import { isBotSubmission } from './utils/honeypot'
 
 const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -14,6 +15,11 @@ const handler: Handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body || '{}')
+
+    // Honeypot: silently accept bot submissions without processing
+    if (isBotSubmission(body)) {
+      return { statusCode: 201, body: JSON.stringify({ message: 'Form submitted successfully' }) }
+    }
 
     // Support both "name" (legacy frontend) and "fullName" field names
     if (body.name && !body.fullName) {

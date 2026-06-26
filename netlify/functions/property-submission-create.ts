@@ -2,6 +2,7 @@ import { Handler } from '@netlify/functions'
 import { createClient } from '@supabase/supabase-js'
 import { createSalesforceClient } from './utils/salesforce-client'
 import { sendFormNotification } from './utils/notification-service'
+import { isBotSubmission, HONEYPOT_FIELD } from './utils/honeypot'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,6 +44,12 @@ export const handler: Handler = async (event) => {
 
   try {
     const data = JSON.parse(event.body || '{}')
+
+    // Honeypot: silently accept bot submissions without processing
+    if (isBotSubmission(data)) {
+      return { statusCode: 200, body: JSON.stringify({ success: true }) }
+    }
+    delete data[HONEYPOT_FIELD]
 
     const { error } = await supabase.from('property_submissions').insert({
       submission_data: data,

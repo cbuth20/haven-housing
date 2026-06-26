@@ -12,7 +12,7 @@ interface AuthState {
   initialize: () => void
   setUser: (user: UserProfile | null) => void
   signIn: (email: string, password: string) => Promise<void>
-  signUp: (email: string, password: string, fullName: string) => Promise<{ needsConfirmation: boolean }>
+  signUp: (email: string, password: string, fullName: string, captchaToken?: string) => Promise<{ needsConfirmation: boolean }>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -64,11 +64,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // onAuthStateChange handles the rest
   },
 
-  signUp: async (email: string, password: string, fullName: string) => {
+  signUp: async (email: string, password: string, fullName: string, captchaToken?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { full_name: fullName }, captchaToken },
     })
 
     if (error) throw error
