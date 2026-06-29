@@ -8,6 +8,7 @@ import { ReviewStep } from '@/components/import/ReviewStep'
 import { Button } from '@/components/common/Button'
 import { CheckCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import type { PhotoArchive } from '@/lib/zip-photos'
 
 type Step = 'upload' | 'mapping' | 'review' | 'complete'
 
@@ -16,6 +17,9 @@ interface ImportSummary {
   updated: number
   skipped: number
   errors: { index: number; message: string }[]
+  photosUploaded?: number
+  photoErrors?: number
+  photoIssues?: string[]
 }
 
 const STEPS: { key: Step; label: string }[] = [
@@ -30,13 +34,18 @@ export default function ImportPage() {
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<Record<string, string>[]>([])
   const [mapping, setMapping] = useState<Record<string, string>>({})
+  const [photoArchive, setPhotoArchive] = useState<PhotoArchive | null>(null)
   const [summary, setSummary] = useState<ImportSummary | null>(null)
 
-  const handleParsed = useCallback((h: string[], r: Record<string, string>[]) => {
-    setHeaders(h)
-    setRows(r)
-    setStep('mapping')
-  }, [])
+  const handleParsed = useCallback(
+    (h: string[], r: Record<string, string>[], archive: PhotoArchive | null) => {
+      setHeaders(h)
+      setRows(r)
+      setPhotoArchive(archive)
+      setStep('mapping')
+    },
+    []
+  )
 
   const handleMapped = useCallback((m: Record<string, string>) => {
     setMapping(m)
@@ -106,6 +115,7 @@ export default function ImportPage() {
             headers={headers}
             rows={rows}
             mapping={mapping}
+            photoArchive={photoArchive}
             onBack={() => setStep('mapping')}
             onImportComplete={handleImportComplete}
           />
@@ -134,6 +144,30 @@ export default function ImportPage() {
               </div>
             </div>
 
+            {(summary.photosUploaded || summary.photoErrors) ? (
+              <p className="text-sm text-gray-600">
+                <span className="font-semibold text-navy">{summary.photosUploaded ?? 0}</span> photo
+                {(summary.photosUploaded ?? 0) !== 1 ? 's' : ''} hosted
+                {summary.photoErrors ? (
+                  <span className="text-red-600">
+                    {' '}· {summary.photoErrors} image{summary.photoErrors !== 1 ? 's' : ''} failed
+                  </span>
+                ) : null}
+              </p>
+            ) : null}
+
+            {summary.photoIssues && summary.photoIssues.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-left max-w-md mx-auto">
+                <p className="text-sm font-medium text-amber-800 mb-2">Photo issues:</p>
+                <ul className="list-disc list-inside text-sm text-amber-700">
+                  {summary.photoIssues.slice(0, 10).map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                  {summary.photoIssues.length > 10 && <li>...and {summary.photoIssues.length - 10} more</li>}
+                </ul>
+              </div>
+            )}
+
             {summary.errors.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-left max-w-md mx-auto">
                 <p className="text-sm font-medium text-red-800 mb-2">{summary.errors.length} row(s) failed:</p>
@@ -154,6 +188,7 @@ export default function ImportPage() {
                 setHeaders([])
                 setRows([])
                 setMapping({})
+                setPhotoArchive(null)
                 setSummary(null)
               }}>
                 Import More

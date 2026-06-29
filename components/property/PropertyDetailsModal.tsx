@@ -60,10 +60,10 @@ export function PropertyDetailsModal({
   const livePath = `/properties/${property.id}`
   const liveUrl = `${origin}${livePath}`
 
-  const images = [
+  const images = ([
     property.cover_photo_url,
     ...(property.media_gallery_urls || []),
-  ].filter(Boolean) as string[]
+  ].filter(Boolean) as string[]).filter((url, i, arr) => arr.indexOf(url) === i)
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))

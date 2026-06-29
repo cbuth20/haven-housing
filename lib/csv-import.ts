@@ -51,6 +51,7 @@ export const COLUMN_ALIASES: Record<string, string[]> = {
   other_amenities: ['other amenities', 'other ammenities', 'amenities'],
   listing_link: ['listing link', 'listing url', 'url'],
   cover_photo_url: ['cover photo', 'cover photo url', 'photo', 'photo url', "photo's link", 'photos link'],
+  photo_folder: ['photo folder', 'photos folder', 'image folder', 'photo dir'],
   featured: ['featured'],
   latitude: ['latitude', 'lat'],
   longitude: ['longitude', 'lng', 'long'],
@@ -112,6 +113,7 @@ const FIELD_LABELS: Record<string, string> = {
   other_amenities: 'Other Amenities',
   listing_link: 'Listing Link',
   cover_photo_url: 'Cover Photo URL',
+  photo_folder: 'Photo Folder (ZIP)',
   featured: 'Featured',
   latitude: 'Latitude',
   longitude: 'Longitude',
@@ -133,6 +135,13 @@ export function getPropertyFields(): { value: string; label: string }[] {
 // ---------------------------------------------------------------------------
 
 const NUMERIC_FIELDS = new Set(['beds', 'baths', 'monthly_rent', 'latitude', 'longitude'])
+
+/**
+ * Fields that are used only during import (e.g. as a join key) and must NOT be
+ * persisted to the properties table. ReviewStep strips these before sending rows
+ * to the server.
+ */
+export const TRANSIENT_FIELDS = new Set(['photo_folder'])
 
 /**
  * Attempt to parse a JSON array string.
@@ -192,6 +201,11 @@ export function normalizeValue(raw: string, field: string): any {
     if (jsonArr) return jsonArr
     // Fall back to comma-split
     return trimmed.split(',').map((s) => s.trim()).filter(Boolean)
+  }
+
+  // --- photo_folder: transient ZIP-matching key, keep as the plain folder name ---
+  if (field === 'photo_folder') {
+    return trimmed
   }
 
   // --- Try to unwrap single-element Wix array wrapper for non-amenity fields ---

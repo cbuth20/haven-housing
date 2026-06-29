@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { transformRow, validateRow } from '@/lib/csv-import'
+import { transformRow, validateRow, TRANSIENT_FIELDS } from '@/lib/csv-import'
 import { useProperties } from '@/hooks/useProperties'
+import { uploadPhotosWithResults } from '@/lib/upload-photos'
+import { materializeFolder, normalizeFolderKey, summarizeMatches, type PhotoArchive } from '@/lib/zip-photos'
 import { Button } from '@/components/common/Button'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import {
@@ -11,6 +13,7 @@ import {
   XCircleIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline'
 import { Property } from '@/types/property'
 
@@ -31,15 +34,24 @@ interface ReviewStepProps {
   headers: string[]
   rows: Record<string, string>[]
   mapping: Record<string, string>
+  photoArchive?: PhotoArchive | null
   onBack: () => void
-  onImportComplete: (summary: { created: number; updated: number; skipped: number; errors: { index: number; message: string }[] }) => void
+  onImportComplete: (summary: {
+    created: number
+    updated: number
+    skipped: number
+    errors: { index: number; message: string }[]
+    photosUploaded?: number
+    photoErrors?: number
+    photoIssues?: string[]
+  }) => void
 }
 
 type StatusFilter = 'all' | 'ready' | 'duplicate' | 'error'
 
 const BATCH_SIZE = 50
 
-export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }: ReviewStepProps) {
+export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImportComplete }: ReviewStepProps) {
   const { bulkValidate, bulkCreate, isLoading } = useProperties()
   const [rowStates, setRowStates] = useState<RowState[]>([])
   const [isValidating, setIsValidating] = useState(true)
@@ -111,6 +123,16 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
     return { ready, duplicates, errors, selectedDuplicates, total }
   }, [rowStates])
 
+  const photoFolderMapped = useMemo(() => Object.values(mapping).includes('photo_folder'), [mapping])
+
+  const matchSummary = useMemo(() => {
+    if (!photoArchive) return null
+    const values = rowStates
+      .filter((r) => r.selected && r.serverStatus !== 'error')
+      .map((r) => (r.data.photo_folder ? String(r.data.photo_folder) : ''))
+    return summarizeMatches(values, photoArchive)
+  }, [rowStates, photoArchive])
+
   const filteredRowStates = useMemo(() => {
     if (statusFilter === 'all') return rowStates.map((r, i) => ({ ...r, originalIndex: i }))
     return rowStates
@@ -163,24 +185,75 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
     setError(null)
 
     try {
-      const importRows = rowStates
+      // Work on copies so re-hosted photo URLs and stripped transient fields don't
+      // mutate the on-screen rowStates (which would skew the preview on a retry).
+      const selected = rowStates
         .filter((r) => r.selected && r.serverStatus !== 'error')
-        .map((r) => {
-          if (r.serverStatus === 'duplicate') {
-            return {
-              action: r.duplicateAction === 'update' ? 'update' : 'create',
-              existingId: r.duplicateAction === 'update' ? r.match?.id : undefined,
-              data: r.data,
-            }
-          }
-          return { action: 'create' as const, data: r.data }
-        })
+        .map((r) => ({ ...r, data: { ...r.data } }))
 
-      if (importRows.length === 0) {
+      if (selected.length === 0) {
         setError('No rows selected for import.')
         setIsImporting(false)
         return
       }
+
+      // --- Phase A: re-host matched photos (browser → Supabase Storage) ---
+      let photosUploaded = 0
+      let photoErrors = 0
+      const photoIssues: string[] = []
+
+      if (photoArchive) {
+        const withPhotos = selected.filter((r) => {
+          const key = r.data.photo_folder ? normalizeFolderKey(String(r.data.photo_folder)) : ''
+          return key && photoArchive.folders.has(key)
+        })
+
+        for (let k = 0; k < withPhotos.length; k++) {
+          const r = withPhotos[k]
+          setImportProgress(`Uploading photos: ${k + 1} of ${withPhotos.length} properties...`)
+          const label = String(r.data.photo_folder)
+          const key = normalizeFolderKey(label)
+          const entries = photoArchive.folders.get(key)!
+          try {
+            const files = await materializeFolder(entries)
+            const { urls, failures } = await uploadPhotosWithResults(files, 'admin')
+            // Set whatever succeeded — a few bad images don't lose the rest.
+            if (urls.length > 0) {
+              r.data.cover_photo_url = urls[0]
+              r.data.media_gallery_urls = urls
+              photosUploaded += urls.length
+            }
+            if (failures.length > 0) {
+              photoErrors += failures.length
+              photoIssues.push(
+                `${label}: ${failures.length} of ${files.length} image(s) failed (${failures[0].message})`
+              )
+            }
+          } catch (photoErr: any) {
+            // Folder couldn't be read/uploaded at all — non-fatal; row still imports.
+            console.error('Photo processing failed for folder', key, photoErr)
+            photoErrors += entries.length
+            photoIssues.push(`${label}: photos could not be processed (${photoErr?.message || 'unknown error'})`)
+          }
+        }
+      }
+
+      // Strip transient (non-column) fields before sending to the server.
+      for (const r of selected) {
+        for (const field of TRANSIENT_FIELDS) delete r.data[field]
+      }
+
+      // --- Phase B: build import rows and batch-create (existing flow) ---
+      const importRows = selected.map((r) => {
+        if (r.serverStatus === 'duplicate') {
+          return {
+            action: r.duplicateAction === 'update' ? 'update' : 'create',
+            existingId: r.duplicateAction === 'update' ? r.match?.id : undefined,
+            data: r.data,
+          }
+        }
+        return { action: 'create' as const, data: r.data }
+      })
 
       const aggregatedSummary = { created: 0, updated: 0, skipped: 0, errors: [] as { index: number; message: string }[] }
       const totalBatches = Math.ceil(importRows.length / BATCH_SIZE)
@@ -197,7 +270,7 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
       }
 
       aggregatedSummary.skipped += rowStates.filter((r) => !r.selected || r.serverStatus === 'error').length
-      onImportComplete(aggregatedSummary)
+      onImportComplete({ ...aggregatedSummary, photosUploaded, photoErrors, photoIssues })
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -263,6 +336,64 @@ export function ReviewStep({ headers, rows, mapping, onBack, onImportComplete }:
           <p className="text-xs text-red-600">Errors</p>
         </button>
       </div>
+
+      {/* Photo column mapped but no ZIP provided */}
+      {!photoArchive && photoFolderMapped && (
+        <div className="rounded-lg border bg-yellow-50 border-yellow-200 p-4">
+          <div className="flex items-start gap-3">
+            <PhotoIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-yellow-600" />
+            <p className="text-sm text-yellow-800">
+              You mapped a column to <span className="font-medium">Photo Folder (ZIP)</span> but didn&apos;t add a
+              photos ZIP. Properties will import without photos. Go back to Upload to add one.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Photo archive match preview */}
+      {photoArchive && (
+        <div className={`rounded-lg border p-4 ${
+          !photoFolderMapped ? 'bg-yellow-50 border-yellow-200' : 'bg-blue-50 border-blue-200'
+        }`}>
+          <div className="flex items-start gap-3">
+            <PhotoIcon className={`h-5 w-5 flex-shrink-0 mt-0.5 ${!photoFolderMapped ? 'text-yellow-600' : 'text-blue-600'}`} />
+            <div className="text-sm space-y-1">
+              {!photoFolderMapped ? (
+                <p className="text-yellow-800">
+                  You added a photos ZIP ({photoArchive.totalImages} image{photoArchive.totalImages !== 1 ? 's' : ''} in{' '}
+                  {photoArchive.folders.size} folder{photoArchive.folders.size !== 1 ? 's' : ''}), but no column is mapped to{' '}
+                  <span className="font-medium">Photo Folder (ZIP)</span>. Go back to Map Columns to match it, or photos will be skipped.
+                </p>
+              ) : (
+                <>
+                  <p className="text-blue-900">
+                    <span className="font-semibold">{matchSummary?.matchedRows ?? 0}</span> of {stats.total} selected
+                    {' '}propert{stats.total !== 1 ? 'ies' : 'y'} matched a photo folder
+                    {' '}(<span className="font-semibold">{matchSummary?.matchedImages ?? 0}</span> image
+                    {(matchSummary?.matchedImages ?? 0) !== 1 ? 's' : ''} will be hosted).
+                  </p>
+                  {matchSummary && matchSummary.unmatchedRows.length > 0 && (
+                    <p className="text-yellow-700">
+                      ⚠ {matchSummary.unmatchedRows.length} selected row
+                      {matchSummary.unmatchedRows.length !== 1 ? 's have' : ' has'} a photo_folder with no matching folder:{' '}
+                      <span className="font-mono text-xs">{matchSummary.unmatchedRows.slice(0, 5).join(', ')}</span>
+                      {matchSummary.unmatchedRows.length > 5 ? ` +${matchSummary.unmatchedRows.length - 5} more` : ''}
+                    </p>
+                  )}
+                  {matchSummary && matchSummary.unusedFolders.length > 0 && (
+                    <p className="text-gray-600">
+                      {matchSummary.unusedFolders.length} folder
+                      {matchSummary.unusedFolders.length !== 1 ? 's' : ''} in the ZIP went unused:{' '}
+                      <span className="font-mono text-xs">{matchSummary.unusedFolders.slice(0, 5).join(', ')}</span>
+                      {matchSummary.unusedFolders.length > 5 ? ` +${matchSummary.unusedFolders.length - 5} more` : ''}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Batch duplicate actions */}
       {stats.duplicates > 0 && (
