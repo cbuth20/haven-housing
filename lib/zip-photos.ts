@@ -147,6 +147,7 @@ export function summarizeMatches(photoFolderValues: string[], archive: PhotoArch
   for (const raw of photoFolderValues) {
     if (!raw) continue
     const key = normalizeFolderKey(raw)
+    if (!key) continue // whitespace-only value — not a real folder reference
     const entries = archive.folders.get(key)
     if (entries) {
       matchedRows++

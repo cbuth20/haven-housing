@@ -2,6 +2,7 @@ import { Handler } from '@netlify/functions'
 import { supabaseAdmin } from './utils/supabase-client'
 import { requireAdmin } from './utils/auth-middleware'
 import { PropertySchema } from './utils/validation'
+import { buildPropertyUpdate } from './utils/property-update'
 
 interface ImportRow {
   action: 'create' | 'update' | 'skip'
@@ -35,7 +36,7 @@ const handler: Handler = requireAdmin(async (event) => {
     const summary: ImportSummary = { created: 0, updated: 0, skipped: 0, errors: [] }
 
     const toCreate: { index: number; data: Record<string, any> }[] = []
-    const toUpdate: { index: number; id: string; data: Record<string, any> }[] = []
+    const toUpdate: { index: number; id: string; provided: Record<string, any>; data: Record<string, any> }[] = []
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
@@ -57,7 +58,13 @@ const handler: Handler = requireAdmin(async (event) => {
       if (row.action === 'create') {
         toCreate.push({ index: i, data: parseResult.data })
       } else if (row.action === 'update' && row.existingId) {
-        toUpdate.push({ index: i, id: row.existingId, data: parseResult.data })
+        // Keep the original provided keys so the update only touches fields the
+        // CSV actually supplied — not schema-default fields the parser injects.
+        toUpdate.push({ index: i, id: row.existingId, provided: row.data, data: parseResult.data })
+      } else if (row.action === 'update') {
+        // Update requested but no target id — surface it instead of silently
+        // dropping the row from every summary count.
+        summary.errors.push({ index: i, message: 'Could not update: existing property id missing' })
       }
     }
 
@@ -98,11 +105,18 @@ const handler: Handler = requireAdmin(async (event) => {
       }
     }
 
-    // Update existing properties one at a time
+    // Update existing properties one at a time. buildPropertyUpdate enforces the
+    // import-update safety rules (preserve status/featured/ownership, only write
+    // provided non-blank fields) — see netlify/functions/utils/property-update.ts.
     for (const item of toUpdate) {
+      const updateData = buildPropertyUpdate(item.provided, item.data)
+
+      // Nothing updatable (only protected or blank fields supplied) — no-op.
+      if (Object.keys(updateData).length === 0) continue
+
       const { error } = await supabaseAdmin
         .from('properties')
-        .update(item.data)
+        .update(updateData)
         .eq('id', item.id)
 
       if (error) {

@@ -92,12 +92,16 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
             if (!next[i].clientValidation.valid) continue
             const serverResult = response.results[validIndex]
             if (serverResult) {
+              const isDuplicate = serverResult.status === 'duplicate'
               next[i] = {
                 ...next[i],
                 serverStatus: serverResult.status as any,
                 serverErrors: serverResult.errors,
                 match: serverResult.match,
-                selected: serverResult.status === 'ready',
+                // Existing properties default to Update (refresh data/photos in place);
+                // status & featured are preserved server-side.
+                duplicateAction: isDuplicate ? 'update' : next[i].duplicateAction,
+                selected: serverResult.status === 'ready' || isDuplicate,
               }
             }
             validIndex++

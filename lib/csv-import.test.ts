@@ -6,6 +6,7 @@ import {
   transformRow,
   validateRow,
   COLUMN_ALIASES,
+  TRANSIENT_FIELDS,
 } from './csv-import'
 
 // ---------------------------------------------------------------------------
@@ -305,6 +306,26 @@ describe('transformRow', () => {
     const row = { 'Sq Ft': '1,200 SF' }
     const result = transformRow(row, mapping)
     expect(result.square_footage).toBe(1200)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// photo_folder (ZIP matching key)
+// ---------------------------------------------------------------------------
+describe('photo_folder', () => {
+  it('auto-maps photo folder headers', () => {
+    expect(autoMapColumns(['Photo Folder'])['Photo Folder']).toBe('photo_folder')
+    expect(autoMapColumns(['Image Folder'])['Image Folder']).toBe('photo_folder')
+  })
+
+  it('normalizes to a trimmed string (not URL-validated like cover_photo_url)', () => {
+    expect(normalizeValue('  123 Main St  ', 'photo_folder')).toBe('123 Main St')
+    // unlike cover_photo_url, a non-URL value is kept (it is a folder name)
+    expect(normalizeValue('123 Main St', 'photo_folder')).toBe('123 Main St')
+  })
+
+  it('is a transient field that must never be persisted', () => {
+    expect(TRANSIENT_FIELDS.has('photo_folder')).toBe(true)
   })
 })
 
