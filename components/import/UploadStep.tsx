@@ -194,6 +194,47 @@ export function UploadStep({ onParsed }: UploadStepProps) {
           servers automatically. Use JPG or PNG for reliable display.
         </p>
 
+        <details className="mt-3 rounded-lg border border-gray-200 bg-gray-50">
+          <summary className="cursor-pointer select-none px-4 py-2.5 text-sm font-medium text-navy hover:bg-gray-100 rounded-lg">
+            How to prepare your photos
+          </summary>
+          <div className="px-4 pb-4 pt-1 text-sm text-gray-700 space-y-3">
+            <ol className="list-decimal list-outside ml-5 space-y-2">
+              <li>
+                <span className="font-medium">One folder per property.</span> Put each property&apos;s
+                photos in their own folder, named something simple and unique (the street address works
+                well, e.g. <span className="font-mono text-xs">123 Main St</span>).
+              </li>
+              <li>
+                <span className="font-medium">Add a <span className="font-mono text-xs">photo_folder</span> column</span>{' '}
+                to your CSV. For each property, enter the exact folder name from step 1. Capitalization and
+                extra spaces don&apos;t matter, but spelling must match.
+              </li>
+              <li>
+                <span className="font-medium">Zip the folders together</span> into a single{' '}
+                <span className="font-mono text-xs">.zip</span> and upload it below.
+              </li>
+            </ol>
+            <ul className="list-disc list-outside ml-5 space-y-1.5 text-gray-600">
+              <li>
+                Use <span className="font-medium">JPG, PNG, or WebP</span>. Other formats — including
+                iPhone <span className="font-medium">HEIC</span> — won&apos;t import; convert them to JPG
+                first. (The uploader tells you if it skipped any.)
+              </li>
+              <li>Keep each image under <span className="font-medium">10&nbsp;MB</span>.</li>
+              <li>
+                The <span className="font-medium">first photo</span> in each folder (alphabetically)
+                becomes the cover — name it <span className="font-mono text-xs">01-…</span> or{' '}
+                <span className="font-mono text-xs">cover.jpg</span> to control which one leads.
+              </li>
+              <li>
+                The next step shows a <span className="font-medium">match preview</span> so you can catch
+                any folder names that don&apos;t line up before anything is imported.
+              </li>
+            </ul>
+          </div>
+        </details>
+
         <div
           {...getZipRootProps()}
           className={`mt-3 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
