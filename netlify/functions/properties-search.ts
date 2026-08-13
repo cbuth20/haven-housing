@@ -104,11 +104,13 @@ const handler = optionalAuth(async (event: OptionalAuthEvent) => {
       query = query.eq('status', filterStatus)
     }
 
-    // Text search
+    // Text search — patterns are double-quoted so commas in the search text
+    // don't break PostgREST's or() condition parsing (quotes are stripped
+    // since they can't be escaped inside a quoted or() value)
     if (search) {
-      const term = `%${search}%`
+      const term = `%${String(search).replace(/"/g, '')}%`
       query = query.or(
-        `title.ilike.${term},city.ilike.${term},state.ilike.${term},street_address.ilike.${term},zip_code.ilike.${term}`
+        `title.ilike."${term}",city.ilike."${term}",state.ilike."${term}",street_address.ilike."${term}",zip_code.ilike."${term}"`
       )
     }
 

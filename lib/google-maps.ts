@@ -53,6 +53,32 @@ export async function loadGoogleMaps() {
   return loadPromise
 }
 
+// Fetch coordinates for a place selected from autocomplete, using the
+// Places API (New) Place class (the legacy PlacesService.getDetails is
+// unavailable to new Google Cloud customers)
+export async function getPlaceCoordinates(
+  placeId: string
+): Promise<{ lat: number; lng: number } | null> {
+  try {
+    await loadGoogleMaps()
+
+    const place = new google.maps.places.Place({ id: placeId })
+    await place.fetchFields({ fields: ['location'] })
+
+    if (place.location) {
+      return {
+        lat: place.location.lat(),
+        lng: place.location.lng(),
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error('Place details error:', error)
+    return null
+  }
+}
+
 // Geocode an address to get coordinates
 export async function geocodeAddress(
   address: string

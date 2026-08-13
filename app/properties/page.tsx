@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SearchFilters } from '@/components/property/PropertyFilters'
-import { PlacesAutocompleteDropdown } from '@/components/property/PlacesAutocompleteDropdown'
+import { PlacesAutocompleteDropdown, PlaceSuggestion } from '@/components/property/PlacesAutocompleteDropdown'
 import { MapView } from '@/components/maps/MapView'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import { PropertyListCard } from '@/components/property/PropertyListCard'
@@ -12,7 +12,7 @@ import { Property } from '@/types/property'
 import { MapPinIcon, AdjustmentsHorizontalIcon, HomeIcon, CurrencyDollarIcon, GlobeAmericasIcon, MapIcon, ListBulletIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
 import { useAuth } from '@/hooks/useAuth'
-import { getCurrentLocation, loadGoogleMaps } from '@/lib/google-maps'
+import { getCurrentLocation, geocodeAddress, getPlaceCoordinates } from '@/lib/google-maps'
 import { formatCurrency } from '@/lib/utils'
 
 const LA_CENTER = { lat: 34.0522, lng: -118.2437 }
@@ -66,27 +66,53 @@ function PropertiesPageInner() {
         return
       }
 
+      const buildUrlFilters = (coords: { lat: number; lng: number }): SearchFilters => {
+        const filters: SearchFilters = {
+          lat: coords.lat,
+          lng: coords.lng,
+          radius: Number(searchParams.get('radius') || '20'),
+        }
+        const beds = searchParams.get('beds')
+        const baths = searchParams.get('baths')
+        const rent = searchParams.get('rent')
+        const pets = searchParams.get('pets')
+        if (beds) filters.minBeds = Number(beds)
+        if (baths) filters.minBaths = Number(baths)
+        if (rent) filters.maxRent = Number(rent)
+        if (pets && pets !== 'all') filters.allowsPets = pets === 'yes'
+        return filters
+      }
+
       if (urlLat && urlLng) {
         const coords = { lat: Number(urlLat), lng: Number(urlLng) }
         if (!cancelled) {
           setMapCenter(coords)
           setMapZoom(11)
-          const filters: SearchFilters = {
-            lat: coords.lat,
-            lng: coords.lng,
-            radius: Number(searchParams.get('radius') || '20'),
-          }
-          const beds = searchParams.get('beds')
-          const baths = searchParams.get('baths')
-          const rent = searchParams.get('rent')
-          const pets = searchParams.get('pets')
-          if (beds) filters.minBeds = Number(beds)
-          if (baths) filters.minBaths = Number(baths)
-          if (rent) filters.maxRent = Number(rent)
-          if (pets && pets !== 'all') filters.allowsPets = pets === 'yes'
-          await searchRef.current(filters)
+          await searchRef.current(buildUrlFilters(coords))
           setInitialLoadDone(true)
         }
+        return
+      }
+
+      // URL has a location query but no coordinates (e.g. shared link or a
+      // search submitted without picking an autocomplete suggestion) —
+      // geocode the text so results match what the search box shows.
+      const urlQ = searchParams.get('q')
+      if (urlQ) {
+        const coords = await geocodeAddress(urlQ)
+        if (cancelled) return
+        if (coords) {
+          setMapCenter(coords)
+          setMapZoom(11)
+          setSelectedCoords(coords)
+          await searchRef.current(buildUrlFilters(coords))
+          setInitialLoadDone(true)
+          return
+        }
+        // Geocoding failed — fall back to text matching on the query rather
+        // than showing results for an unrelated default location
+        await searchRef.current({ search: urlQ })
+        setInitialLoadDone(true)
         return
       }
 
@@ -155,69 +181,70 @@ function PropertiesPageInner() {
     router.push(`/properties${queryString ? `?${queryString}` : ''}`)
   }, [location, selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, isGlobalView, router])
 
-  const handlePlaceSelect = useCallback(async (place: google.maps.places.AutocompletePrediction) => {
+  const handlePlaceSelect = useCallback(async (place: PlaceSuggestion) => {
     // Get place details to extract coordinates
-    await loadGoogleMaps()
-    const placesService = new google.maps.places.PlacesService(document.createElement('div'))
+    const coords = await getPlaceCoordinates(place.placeId)
+    if (!coords) return
 
-    placesService.getDetails(
-      {
-        placeId: place.place_id,
-        fields: ['geometry'],
-      },
-      (result, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK && result?.geometry?.location) {
-          const coords = {
-            lat: result.geometry.location.lat(),
-            lng: result.geometry.location.lng(),
-          }
+    setMapCenter(coords)
+    setMapZoom(11)
+    setSelectedCoords(coords)
 
-          setMapCenter(coords)
-          setMapZoom(11)
-          setSelectedCoords(coords)
+    // Auto-trigger search when place is selected
+    const filters: SearchFilters = {
+      location: place.description,
+      lat: coords.lat,
+      lng: coords.lng,
+      radius: Number(radius),
+    }
 
-          // Auto-trigger search when place is selected
-          const filters: SearchFilters = {
-            location: place.description,
-            lat: coords.lat,
-            lng: coords.lng,
-            radius: Number(radius),
-          }
+    if (minBeds) filters.minBeds = Number(minBeds)
+    if (minBaths) filters.minBaths = Number(minBaths)
+    if (maxRent) filters.maxRent = Number(maxRent)
+    if (petFriendly !== 'all') {
+      filters.allowsPets = petFriendly === 'yes'
+    }
 
-          if (minBeds) filters.minBeds = Number(minBeds)
-          if (minBaths) filters.minBaths = Number(minBaths)
-          if (maxRent) filters.maxRent = Number(maxRent)
-          if (petFriendly !== 'all') {
-            filters.allowsPets = petFriendly === 'yes'
-          }
-
-          searchProperties(filters)
-          pushSearchParams({
-            q: place.description,
-            lat: coords.lat,
-            lng: coords.lng,
-          })
-        }
-      }
-    )
+    searchProperties(filters)
+    pushSearchParams({
+      q: place.description,
+      lat: coords.lat,
+      lng: coords.lng,
+    })
   }, [radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
   const handleSearch = useCallback(async () => {
-    const filters: SearchFilters = {
+    // Typed text without picking an autocomplete suggestion leaves us with no
+    // coordinates — geocode the text so the search actually uses the location.
+    let coords = selectedCoords
+    if (!coords && location.trim()) {
+      coords = await geocodeAddress(location.trim())
+      if (coords) {
+        setSelectedCoords(coords)
+        setMapCenter(coords)
+        setMapZoom(11)
+      }
+    }
+
+    const filters: SearchFilters & { search?: string } = {
       radius: Number(radius),
     }
-    if (selectedCoords) {
-      filters.lat = selectedCoords.lat
-      filters.lng = selectedCoords.lng
+    if (coords) {
+      filters.lat = coords.lat
+      filters.lng = coords.lng
+    } else if (location.trim()) {
+      // Geocoding failed — fall back to text matching on city/state/address
+      // rather than returning the entire catalog.
+      filters.search = location.trim()
     }
     if (minBeds) filters.minBeds = Number(minBeds)
     if (minBaths) filters.minBaths = Number(minBaths)
     if (maxRent) filters.maxRent = Number(maxRent)
     if (petFriendly !== 'all') filters.allowsPets = petFriendly === 'yes'
 
-    pushSearchParams({ global: false })
+    pushSearchParams({ global: false, lat: coords?.lat ?? null, lng: coords?.lng ?? null })
     await searchProperties(filters)
-  }, [selectedCoords, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
+  }, [selectedCoords, location, radius, minBeds, minBaths, maxRent, petFriendly, searchProperties, pushSearchParams])
 
   const handleGlobalView = useCallback(async () => {
     setIsGlobalView(true)

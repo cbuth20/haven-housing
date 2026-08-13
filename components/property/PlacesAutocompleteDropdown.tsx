@@ -4,10 +4,18 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { MapPinIcon } from '@heroicons/react/24/outline'
 import { loadGoogleMaps } from '@/lib/google-maps'
 
+// Normalized suggestion passed to consumers — decoupled from the underlying
+// Google Places types (this component uses the Places API (New) Autocomplete
+// Data API; the legacy AutocompleteService is unavailable to new customers)
+export interface PlaceSuggestion {
+  placeId: string
+  description: string
+}
+
 interface PlacesAutocompleteDropdownProps {
   value: string
   onChange: (value: string) => void
-  onPlaceSelect: (place: google.maps.places.AutocompletePrediction) => void
+  onPlaceSelect: (place: PlaceSuggestion) => void
   placeholder?: string
   className?: string
 }
@@ -19,14 +27,14 @@ export function PlacesAutocompleteDropdown({
   placeholder = 'Search for a City, Neighborhood, street, or point of interest',
   className = '',
 }: PlacesAutocompleteDropdownProps) {
-  const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([])
+  const [predictions, setPredictions] = useState<PlaceSuggestion[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)
   const [serviceReady, setServiceReady] = useState(false)
 
-  const autocompleteServiceRef = useRef<google.maps.places.AutocompleteService | null>(null)
   const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null)
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const requestIdRef = useRef(0)
   const inputRef = useRef<HTMLInputElement>(null)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -35,7 +43,6 @@ export function PlacesAutocompleteDropdown({
     const initService = async () => {
       try {
         await loadGoogleMaps()
-        autocompleteServiceRef.current = new google.maps.places.AutocompleteService()
         sessionTokenRef.current = new google.maps.places.AutocompleteSessionToken()
         setServiceReady(true)
       } catch (error) {
@@ -63,7 +70,7 @@ export function PlacesAutocompleteDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  const fetchPredictions = useCallback((input: string) => {
+  const fetchPredictions = useCallback(async (input: string) => {
     if (!input || input.length < 2) {
       setPredictions([])
       setShowDropdown(false)
@@ -71,35 +78,39 @@ export function PlacesAutocompleteDropdown({
       return
     }
 
-    if (!autocompleteServiceRef.current) {
+    if (!sessionTokenRef.current) {
       return
     }
 
     setIsLoading(true)
     setShowDropdown(true)
 
-    autocompleteServiceRef.current.getPlacePredictions(
-      {
-        input,
-        types: ['geocode'],
-        sessionToken: sessionTokenRef.current!,
-      },
-      (results, status) => {
-        setIsLoading(false)
+    const requestId = ++requestIdRef.current
+    try {
+      const { suggestions } =
+        await google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input,
+          sessionToken: sessionTokenRef.current,
+        })
 
-        if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-          setPredictions(results)
-          setShowDropdown(true)
-        } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-          setPredictions([])
-          setShowDropdown(false)
-        } else {
-          console.error('Places API error:', status)
-          setPredictions([])
-          setShowDropdown(false)
-        }
-      }
-    )
+      // A newer request has been issued while this one was in flight
+      if (requestId !== requestIdRef.current) return
+
+      const results: PlaceSuggestion[] = suggestions
+        .map((s) => s.placePrediction)
+        .filter((p): p is google.maps.places.PlacePrediction => p != null)
+        .map((p) => ({ placeId: p.placeId, description: p.text.text }))
+
+      setIsLoading(false)
+      setPredictions(results)
+      setShowDropdown(results.length > 0)
+    } catch (error) {
+      if (requestId !== requestIdRef.current) return
+      console.error('Places API error:', error)
+      setIsLoading(false)
+      setPredictions([])
+      setShowDropdown(false)
+    }
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,7 +128,7 @@ export function PlacesAutocompleteDropdown({
     }, 300)
   }
 
-  const handlePredictionClick = (prediction: google.maps.places.AutocompletePrediction) => {
+  const handlePredictionClick = (prediction: PlaceSuggestion) => {
     onChange(prediction.description)
     setShowDropdown(false)
     setPredictions([])
@@ -165,7 +176,7 @@ export function PlacesAutocompleteDropdown({
               <div className="space-y-2">
                 {predictions.map((prediction) => (
                   <button
-                    key={prediction.place_id}
+                    key={prediction.placeId}
                     onClick={() => handlePredictionClick(prediction)}
                     className="w-full text-left px-4 py-2 rounded-full border border-gray-300 hover:border-navy hover:bg-gray-50 transition-colors text-sm text-gray-700"
                   >
