@@ -23,7 +23,7 @@ interface ImportSummary {
 }
 
 const STEPS: { key: Step; label: string }[] = [
-  { key: 'upload', label: 'Upload CSV' },
+  { key: 'upload', label: 'Upload File' },
   { key: 'mapping', label: 'Map Columns' },
   { key: 'review', label: 'Review & Import' },
 ]
@@ -68,7 +68,7 @@ export default function ImportPage() {
         </Link>
         <div>
           <h1 className="text-xl font-heading font-bold text-navy">Import Properties</h1>
-          <p className="text-sm text-gray-600">Bulk upload properties from a CSV file</p>
+          <p className="text-sm text-gray-600">Bulk upload properties from a CSV or Excel file</p>
         </div>
       </div>
 

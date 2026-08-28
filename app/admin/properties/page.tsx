@@ -8,6 +8,7 @@ import { PropertyDetailsModal } from '@/components/property/PropertyDetailsModal
 import { PropertyForm } from '@/components/forms/PropertyForm'
 import { Modal } from '@/components/common/Modal'
 import { Button } from '@/components/common/Button'
+import { Dropdown, DropdownItem } from '@/components/common/Dropdown'
 import { LoadingSpinner } from '@/components/common/LoadingSpinner'
 import {
   PlusIcon,
@@ -18,6 +19,9 @@ import {
   StarIcon,
   ArrowUpTrayIcon,
   ArrowDownTrayIcon,
+  ChevronDownIcon,
+  TableCellsIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { useProperties } from '@/hooks/useProperties'
@@ -374,35 +378,34 @@ export default function PropertiesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport('xlsx')}
-            disabled={isExporting !== null || isLoading || totalCount === 0}
-            title="Download an Excel file of all properties matching the current filters"
+          <Dropdown
+            trigger={
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isExporting !== null || isLoading || totalCount === 0}
+                title="Download all properties matching the current filters"
+              >
+                <span className="flex items-center gap-1.5">
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  {isExporting ? 'Exporting…' : 'Export'}
+                  <ChevronDownIcon className="h-3.5 w-3.5" />
+                </span>
+              </Button>
+            }
           >
-            <span className="flex items-center gap-1.5">
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              {isExporting === 'xlsx' ? 'Exporting…' : 'Export Excel'}
-            </span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport('csv')}
-            disabled={isExporting !== null || isLoading || totalCount === 0}
-            title="Download a CSV of all properties matching the current filters"
-          >
-            <span className="flex items-center gap-1.5">
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              {isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}
-            </span>
-          </Button>
+            <DropdownItem onClick={() => handleExport('xlsx')} icon={TableCellsIcon}>
+              Excel (.xlsx)
+            </DropdownItem>
+            <DropdownItem onClick={() => handleExport('csv')} icon={DocumentTextIcon}>
+              CSV (.csv)
+            </DropdownItem>
+          </Dropdown>
           <Link href="/admin/properties/import">
             <Button variant="outline" size="sm">
               <span className="flex items-center gap-1.5">
                 <ArrowUpTrayIcon className="h-4 w-4" />
-                Import CSV
+                Import
               </span>
             </Button>
           </Link>

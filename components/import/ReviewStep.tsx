@@ -546,7 +546,7 @@ function RowEntry({
               <p className="text-sm font-medium text-yellow-800">Existing property found:</p>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase">CSV Data</p>
+                  <p className="text-xs text-gray-500 uppercase">File Data</p>
                   <p>{row.data.street_address}, {row.data.city}, {row.data.state} {row.data.zip_code}</p>
                   <p className="text-gray-500">{row.data.beds} beds / {row.data.baths} baths</p>
                 </div>

@@ -48,7 +48,7 @@ export function MappingStep({ headers, sampleRows, onMapped, onBack }: MappingSt
       <div>
         <h2 className="text-lg font-heading font-semibold text-navy">Map Columns</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Match your CSV columns to property fields.{' '}
+          Match your spreadsheet columns to property fields.{' '}
           <span className="font-medium text-navy">{mappedCount}</span> mapped,{' '}
           <span className={unmappedCount > 0 ? 'text-yellow-600 font-medium' : 'text-gray-500'}>{unmappedCount} unmapped</span>.
         </p>
@@ -70,7 +70,7 @@ export function MappingStep({ headers, sampleRows, onMapped, onBack }: MappingSt
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 border-b">
-              <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 w-1/4">CSV Column</th>
+              <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 w-1/4">File Column</th>
               <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3 w-1/4">Maps To</th>
               <th className="text-left text-xs font-medium text-gray-500 uppercase px-4 py-3">Sample Data (first 3 rows)</th>
             </tr>

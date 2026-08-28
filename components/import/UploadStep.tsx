@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
-import Papa from 'papaparse'
+import { parseSpreadsheetFile, isSpreadsheetFile, SPREADSHEET_ACCEPT } from '@/lib/spreadsheet-parse'
 import { ArrowUpTrayIcon, DocumentTextIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/common/Button'
 import { parsePhotoArchive, type PhotoArchive } from '@/lib/zip-photos'
@@ -33,44 +33,29 @@ export function UploadStep({ onParsed }: UploadStepProps) {
     setIsParsing(true)
     setFileName(file.name)
 
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        setIsParsing(false)
-
-        if (results.errors.length > 0 && results.data.length === 0) {
-          setError(`Failed to parse CSV: ${results.errors[0].message}`)
-          return
-        }
-
-        const headers = results.meta.fields || []
+    parseSpreadsheetFile(file)
+      .then(({ headers, rows }) => {
         if (headers.length === 0) {
-          setError('No column headers found in the CSV file.')
+          setError('No column headers found in the file.')
           return
         }
-
-        if (results.data.length === 0) {
-          setError('CSV file has headers but no data rows.')
+        if (rows.length === 0) {
+          setError('The file has headers but no data rows.')
           return
         }
-
-        setRowCount(results.data.length)
+        setRowCount(rows.length)
         setColCount(headers.length)
-        setParsedData({ headers, rows: results.data })
-      },
-      error: (err) => {
-        setIsParsing(false)
-        setError(`Failed to read file: ${err.message}`)
-      },
-    })
+        setParsedData({ headers, rows })
+      })
+      .catch((err: Error) => setError(err.message))
+      .finally(() => setIsParsing(false))
   }, [])
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return
     const file = acceptedFiles[0]
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a CSV file.')
+    if (!isSpreadsheetFile(file.name)) {
+      setError('Please upload a CSV or Excel (.xlsx) file.')
       return
     }
     handleFile(file)
@@ -78,7 +63,7 @@ export function UploadStep({ onParsed }: UploadStepProps) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'text/csv': ['.csv'] },
+    accept: SPREADSHEET_ACCEPT,
     maxFiles: 1,
   })
 
@@ -135,9 +120,9 @@ export function UploadStep({ onParsed }: UploadStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-heading font-semibold text-navy">Upload CSV File</h2>
+        <h2 className="text-lg font-heading font-semibold text-navy">Upload Spreadsheet</h2>
         <p className="text-sm text-gray-600 mt-1">
-          Upload a CSV file containing property data. The first row should be column headers.
+          Upload a CSV or Excel (.xlsx) file containing property data. The first row should be column headers.
         </p>
       </div>
 
@@ -157,7 +142,7 @@ export function UploadStep({ onParsed }: UploadStepProps) {
         {isParsing ? (
           <div className="flex flex-col items-center gap-2">
             <div className="animate-spin h-8 w-8 border-2 border-navy border-t-transparent rounded-full" />
-            <p className="text-sm text-gray-600">Parsing CSV...</p>
+            <p className="text-sm text-gray-600">Parsing file...</p>
           </div>
         ) : parsedData ? (
           <div className="flex flex-col items-center gap-2">
@@ -173,7 +158,7 @@ export function UploadStep({ onParsed }: UploadStepProps) {
           <div className="flex flex-col items-center gap-2">
             <ArrowUpTrayIcon className="h-10 w-10 text-gray-400" />
             <p className="text-sm text-gray-600">
-              {isDragActive ? 'Drop the CSV file here' : 'Drag and drop a CSV file, or click to browse'}
+              {isDragActive ? 'Drop the file here' : 'Drag and drop a CSV or Excel file, or click to browse'}
             </p>
           </div>
         )}
@@ -190,7 +175,7 @@ export function UploadStep({ onParsed }: UploadStepProps) {
         <h3 className="text-sm font-medium text-navy">Property photos (.zip) — optional</h3>
         <p className="text-xs text-gray-600 mt-1">
           One folder per property, each folder named to match a{' '}
-          <span className="font-mono">photo_folder</span> column in your CSV. Photos are hosted on our
+          <span className="font-mono">photo_folder</span> column in your spreadsheet. Photos are hosted on our
           servers automatically. Use JPG or PNG for reliable display.
         </p>
 
@@ -207,7 +192,7 @@ export function UploadStep({ onParsed }: UploadStepProps) {
               </li>
               <li>
                 <span className="font-medium">Add a <span className="font-mono text-xs">photo_folder</span> column</span>{' '}
-                to your CSV. For each property, enter the exact folder name from step 1. Capitalization and
+                to your spreadsheet. For each property, enter the exact folder name from step 1. Capitalization and
                 extra spaces don&apos;t matter, but spelling must match.
               </li>
               <li>
