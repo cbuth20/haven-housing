@@ -22,6 +22,7 @@ import {
 } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
+import { getPropertyPath, getPropertyUrl } from '@/lib/property-url'
 
 interface PropertyDetailsModalProps {
   property: Property | null
@@ -57,8 +58,8 @@ export function PropertyDetailsModal({
 
   if (!property) return null
 
-  const livePath = `/properties/${property.id}`
-  const liveUrl = `${origin}${livePath}`
+  const livePath = getPropertyPath(property.id)
+  const liveUrl = getPropertyUrl(property.id, origin)
 
   const images = ([
     property.cover_photo_url,

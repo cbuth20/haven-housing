@@ -136,6 +136,9 @@ const handler = optionalAuth(async (event: OptionalAuthEvent) => {
         .order('featured', { ascending: false })
         .order('created_at', { ascending: false })
     }
+    // Deterministic tiebreaker so offset pagination never skips/duplicates
+    // rows that tie on the primary sort column.
+    query = query.order('id', { ascending: true })
 
     // Pagination
     query = query.range(offset, offset + limit - 1)

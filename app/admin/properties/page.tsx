@@ -17,6 +17,7 @@ import {
   XMarkIcon,
   StarIcon,
   ArrowUpTrayIcon,
+  ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { useProperties } from '@/hooks/useProperties'
@@ -24,6 +25,9 @@ import { usePropertySearch } from '@/hooks/usePropertySearch'
 import Image from 'next/image'
 import Link from 'next/link'
 import { getPropertyDisplayTitle } from '@/lib/property-utils'
+import { fetchAllProperties } from '@/lib/fetch-all-properties'
+import { buildPropertiesCsv, buildPropertiesXlsx, XLSX_MIME_TYPE } from '@/lib/property-export'
+import { downloadTextFile, downloadBinaryFile, formatDateForFilename } from '@/lib/download'
 
 const STATUS_CHIPS = [
   { value: 'all', label: 'All', color: 'bg-gray-100 text-gray-700 border-gray-300', activeColor: 'bg-navy text-white border-navy' },
@@ -43,6 +47,8 @@ export default function PropertiesPage() {
   const [featuredOnly, setFeaturedOnly] = useState(false)
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [isExporting, setIsExporting] = useState<'csv' | 'xlsx' | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
 
   const [stats, setStats] = useState({ total: 0, published: 0, draft: 0, archived: 0 })
 
@@ -106,6 +112,38 @@ export default function PropertiesPage() {
     if (!featuredOnly) return properties
     return properties.filter((p) => p.featured)
   }, [properties, featuredOnly])
+
+  // Export every row matching the current filters (not just the 500 on screen)
+  const handleExport = useCallback(async (format: 'csv' | 'xlsx') => {
+    setIsExporting(format)
+    setExportError(null)
+    try {
+      const { properties: all, expectedCount } = await fetchAllProperties({
+        search: searchQuery || undefined,
+        status: statusFilter === 'all' ? 'all' : (statusFilter as any),
+        sortBy: sortKey,
+        sortDirection,
+      })
+      const rows = featuredOnly ? all.filter((p) => p.featured) : all
+      const origin = window.location.origin
+      const filename = `haven-properties-${formatDateForFilename()}.${format}`
+      if (format === 'xlsx') {
+        downloadBinaryFile(buildPropertiesXlsx(rows, origin), filename, XLSX_MIME_TYPE)
+      } else {
+        downloadTextFile(buildPropertiesCsv(rows, origin), filename)
+      }
+      if (all.length !== expectedCount) {
+        setExportError(
+          `Exported ${all.length} of ${expectedCount} rows — data may have changed during export. Try again if the count looks wrong.`
+        )
+      }
+    } catch (error) {
+      console.error('Error exporting properties:', error)
+      setExportError(error instanceof Error ? error.message : 'Export failed')
+    } finally {
+      setIsExporting(null)
+    }
+  }, [searchQuery, statusFilter, sortKey, sortDirection, featuredOnly])
 
   const handleSort = useCallback((key: string) => {
     setSortKey((prev) => {
@@ -336,6 +374,30 @@ export default function PropertiesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport('xlsx')}
+            disabled={isExporting !== null || isLoading || totalCount === 0}
+            title="Download an Excel file of all properties matching the current filters"
+          >
+            <span className="flex items-center gap-1.5">
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              {isExporting === 'xlsx' ? 'Exporting…' : 'Export Excel'}
+            </span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleExport('csv')}
+            disabled={isExporting !== null || isLoading || totalCount === 0}
+            title="Download a CSV of all properties matching the current filters"
+          >
+            <span className="flex items-center gap-1.5">
+              <ArrowDownTrayIcon className="h-4 w-4" />
+              {isExporting === 'csv' ? 'Exporting…' : 'Export CSV'}
+            </span>
+          </Button>
           <Link href="/admin/properties/import">
             <Button variant="outline" size="sm">
               <span className="flex items-center gap-1.5">
@@ -349,6 +411,22 @@ export default function PropertiesPage() {
           </Button>
         </div>
       </div>
+
+      {exportError && (
+        <div
+          role="alert"
+          className="flex items-start justify-between gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-2 text-sm text-red-700"
+        >
+          <span>{exportError}</span>
+          <button
+            onClick={() => setExportError(null)}
+            className="p-0.5 hover:bg-red-100 rounded"
+            aria-label="Dismiss"
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
