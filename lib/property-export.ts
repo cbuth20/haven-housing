@@ -1,5 +1,4 @@
 import Papa from 'papaparse'
-import * as XLSX from 'xlsx'
 import { Property } from '@/types/property'
 import { extractPlainText } from '@/lib/property-utils'
 import { getPropertyUrl } from '@/lib/property-url'
@@ -19,8 +18,10 @@ export interface ExportColumn {
 const col = (key: ExportColumnKey, header: string = key): ExportColumn => ({ key, header })
 
 /**
- * Columns in output order. Headers are snake_case so the file round-trips
- * through the bulk-import wizard's auto-mapping.
+ * Columns in output order. Headers are snake_case field keys, which the
+ * bulk-import wizard's autoMapColumns recognises (underscores -> spaces), so
+ * an exported file re-imports without manual mapping. Columns the importer
+ * does not know (id, status, timestamps, property_url) are simply ignored.
  *
  * Intentionally excluded: cover_photo_url, media_gallery_urls (photos) and
  * salesforce_id, wix_id, owner_id, created_by (internal IDs).
@@ -96,7 +97,8 @@ export function buildPropertiesCsv(
     const row = propertyToExportRow(p, origin)
     return fields.map((f) => row[f])
   })
-  const csv = Papa.unparse({ fields, data })
+  // escapeFormulae guards against =/+/-/@ cells executing when opened in Excel.
+  const csv = Papa.unparse({ fields, data }, { escapeFormulae: true })
   return options.bom === false ? csv : `﻿${csv}`
 }
 
@@ -104,7 +106,9 @@ export function buildPropertiesCsv(
  * Builds a native .xlsx workbook (single "Properties" sheet) with sized
  * columns and clickable property_url cells. Returns the file bytes.
  */
-export function buildPropertiesXlsx(properties: Property[], origin: string): Uint8Array {
+export async function buildPropertiesXlsx(properties: Property[], origin: string): Promise<Uint8Array> {
+  // SheetJS is large; load it only when an Excel export is requested.
+  const XLSX = await import('xlsx')
   const headers = EXPORT_COLUMNS.map((c) => c.header)
   const rows = properties.map((p) => propertyToExportRow(p, origin))
   const aoa: (string | number)[][] = [headers, ...rows.map((r) => headers.map((h) => r[h]))]

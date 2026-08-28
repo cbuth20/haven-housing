@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Property } from '@/types/property'
+import { Property, PropertyStatus, UnifiedSearchFilters } from '@/types/property'
 import { DataTable, Column } from '@/components/common/DataTable'
 import { PropertyDetailsModal } from '@/components/property/PropertyDetailsModal'
 import { PropertyForm } from '@/components/forms/PropertyForm'
@@ -47,7 +47,7 @@ export default function PropertiesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState<PropertyStatus | 'all'>('all')
   const [featuredOnly, setFeaturedOnly] = useState(false)
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
@@ -82,15 +82,20 @@ export default function PropertiesPage() {
     }
   }, [])
 
-  const doSearch = useCallback(() => {
-    searchRef.current({
+  // Single source of truth for server-side filters, shared by the table and export
+  const searchFilters = useMemo<UnifiedSearchFilters>(
+    () => ({
       search: searchQuery || undefined,
-      status: statusFilter === 'all' ? 'all' : statusFilter as any,
+      status: statusFilter,
       sortBy: sortKey,
       sortDirection,
-      limit: 500,
-    })
-  }, [searchQuery, statusFilter, sortKey, sortDirection])
+    }),
+    [searchQuery, statusFilter, sortKey, sortDirection]
+  )
+
+  const doSearch = useCallback(() => {
+    searchRef.current({ ...searchFilters, limit: 500 })
+  }, [searchFilters])
 
   // Initial load
   useEffect(() => {
@@ -118,21 +123,19 @@ export default function PropertiesPage() {
   }, [properties, featuredOnly])
 
   // Export every row matching the current filters (not just the 500 on screen)
+  const exportInFlight = useRef(false)
   const handleExport = useCallback(async (format: 'csv' | 'xlsx') => {
+    if (exportInFlight.current) return
+    exportInFlight.current = true
     setIsExporting(format)
     setExportError(null)
     try {
-      const { properties: all, expectedCount } = await fetchAllProperties({
-        search: searchQuery || undefined,
-        status: statusFilter === 'all' ? 'all' : (statusFilter as any),
-        sortBy: sortKey,
-        sortDirection,
-      })
+      const { properties: all, expectedCount } = await fetchAllProperties(searchFilters)
       const rows = featuredOnly ? all.filter((p) => p.featured) : all
       const origin = window.location.origin
       const filename = `haven-properties-${formatDateForFilename()}.${format}`
       if (format === 'xlsx') {
-        downloadBinaryFile(buildPropertiesXlsx(rows, origin), filename, XLSX_MIME_TYPE)
+        downloadBinaryFile(await buildPropertiesXlsx(rows, origin), filename, XLSX_MIME_TYPE)
       } else {
         downloadTextFile(buildPropertiesCsv(rows, origin), filename)
       }
@@ -145,9 +148,10 @@ export default function PropertiesPage() {
       console.error('Error exporting properties:', error)
       setExportError(error instanceof Error ? error.message : 'Export failed')
     } finally {
+      exportInFlight.current = false
       setIsExporting(null)
     }
-  }, [searchQuery, statusFilter, sortKey, sortDirection, featuredOnly])
+  }, [searchFilters, featuredOnly])
 
   const handleSort = useCallback((key: string) => {
     setSortKey((prev) => {
@@ -379,6 +383,7 @@ export default function PropertiesPage() {
         </div>
         <div className="flex items-center gap-2">
           <Dropdown
+            disabled={isExporting !== null || isLoading || totalCount === 0}
             trigger={
               <Button
                 variant="outline"

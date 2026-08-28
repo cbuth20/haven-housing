@@ -8,13 +8,15 @@ interface DropdownProps {
   trigger: ReactNode
   children: ReactNode
   hover?: boolean
+  /** Prevents the menu from opening (click or keyboard). */
+  disabled?: boolean
 }
 
 // Click-based dropdown using HeadlessUI Menu
-function ClickDropdown({ trigger, children }: DropdownProps) {
+function ClickDropdown({ trigger, children, disabled = false }: DropdownProps) {
   return (
     <Menu as="div" className="relative inline-block text-left">
-      <Menu.Button as="div">
+      <Menu.Button as="div" disabled={disabled}>
         {trigger}
       </Menu.Button>
 
@@ -79,11 +81,11 @@ function HoverDropdown({ trigger, children }: DropdownProps) {
   )
 }
 
-export function Dropdown({ trigger, children, hover = false }: DropdownProps) {
+export function Dropdown({ trigger, children, hover = false, disabled = false }: DropdownProps) {
   if (hover) {
     return <HoverDropdown trigger={trigger}>{children}</HoverDropdown>
   }
-  return <ClickDropdown trigger={trigger}>{children}</ClickDropdown>
+  return <ClickDropdown trigger={trigger} disabled={disabled}>{children}</ClickDropdown>
 }
 
 interface DropdownItemProps {

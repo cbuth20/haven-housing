@@ -113,6 +113,12 @@ describe('buildPropertiesCsv', () => {
     expect(lines[2]).toContain('https://x.test/properties/b')
   })
 
+  it('neutralises formula-injection prefixes', () => {
+    const csv = buildPropertiesCsv([makeProperty({ title: '=HYPERLINK("http://evil","x")' })], ORIGIN, { bom: false })
+    expect(csv).not.toContain('\n=HYPERLINK')
+    expect(csv).toContain("'=HYPERLINK")
+  })
+
   it('quotes and escapes commas, quotes, and newlines', () => {
     const csv = buildPropertiesCsv([makeProperty({ title: 'a, "b"\nc' })], ORIGIN, { bom: false })
     expect(csv).toContain('"a, ""b""\nc"')
@@ -122,7 +128,7 @@ describe('buildPropertiesCsv', () => {
 describe('buildPropertiesXlsx', () => {
   it('produces a workbook with headers, rows, and hyperlinked URLs', async () => {
     const XLSX = await import('xlsx')
-    const bytes = buildPropertiesXlsx([makeProperty(), makeProperty({ id: 'b', title: 'Second' })], ORIGIN)
+    const bytes = await buildPropertiesXlsx([makeProperty(), makeProperty({ id: 'b', title: 'Second' })], ORIGIN)
     expect(bytes.length).toBeGreaterThan(0)
 
     const wb = XLSX.read(bytes, { type: 'array' })

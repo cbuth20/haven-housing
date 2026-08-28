@@ -26,6 +26,14 @@ describe('autoMapColumns', () => {
     expect(mapping[' Address ']).toBe('street_address')
   })
 
+  it('maps snake_case field keys (export round-trip)', () => {
+    const mapping = autoMapColumns(['street_address', 'monthly_rent', 'other_amenities', 'Zip_Code'])
+    expect(mapping['street_address']).toBe('street_address')
+    expect(mapping['monthly_rent']).toBe('monthly_rent')
+    expect(mapping['other_amenities']).toBe('other_amenities')
+    expect(mapping['Zip_Code']).toBe('zip_code')
+  })
+
   it('leaves unknown headers unmapped', () => {
     const mapping = autoMapColumns(['Unknown Column', 'Foobar'])
     expect(mapping['Unknown Column']).toBeUndefined()

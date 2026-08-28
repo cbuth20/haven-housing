@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Property, UnifiedSearchFilters } from '@/types/property'
-import { supabase } from '@/lib/supabase'
+import { getAuthHeaders } from '@/lib/auth-headers'
 
 interface SearchFilters extends UnifiedSearchFilters {
   /** @deprecated Use `lon` instead. Kept for backward compatibility. */
@@ -22,16 +22,9 @@ export function usePropertySearch(options: UsePropertySearchOptions = {}) {
     setError(null)
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      }
-
-      if (options.includeAuth) {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session?.access_token) {
-          headers['Authorization'] = `Bearer ${session.access_token}`
-        }
-      }
+      const headers: Record<string, string> = options.includeAuth
+        ? await getAuthHeaders()
+        : { 'Content-Type': 'application/json' }
 
       // Support both lng (legacy) and lon keys
       const lon = filters.lon ?? filters.lng

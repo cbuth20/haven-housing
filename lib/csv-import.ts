@@ -78,7 +78,10 @@ export function autoMapColumns(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {}
   for (const header of headers) {
     const normalized = header.trim().toLowerCase()
-    const field = _aliasToField.get(normalized)
+    // Accept snake_case field keys (as produced by the export) as well as
+    // human aliases: "street_address" -> "street address".
+    const field =
+      _aliasToField.get(normalized) ?? _aliasToField.get(normalized.replace(/_/g, ' '))
     if (field !== undefined) {
       mapping[header] = field
     }

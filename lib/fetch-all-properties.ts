@@ -1,5 +1,5 @@
 import { Property, UnifiedSearchFilters } from '@/types/property'
-import { supabase } from '@/lib/supabase'
+import { getAuthHeaders } from '@/lib/auth-headers'
 
 export type FetchAllFilters = Pick<
   UnifiedSearchFilters,
@@ -31,11 +31,7 @@ export async function fetchAllProperties(
   const pageSize = options.pageSize ?? 500
   const maxPages = options.maxPages ?? 200
 
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  const { data: { session } } = await supabase.auth.getSession()
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`
-  }
+  const headers = await getAuthHeaders()
 
   const byId = new Map<string, Property>()
   let offset = 0

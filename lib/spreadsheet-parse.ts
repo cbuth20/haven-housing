@@ -1,5 +1,4 @@
 import Papa from 'papaparse'
-import * as XLSX from 'xlsx'
 
 export interface ParsedSpreadsheet {
   headers: string[]
@@ -22,7 +21,8 @@ export function isSpreadsheetFile(name: string): boolean {
 /**
  * Parses a CSV or Excel file into header-keyed string rows. Both formats yield
  * the same shape so the import wizard is format-agnostic. Excel input reads the
- * first sheet; cell values are formatted as text (dates/numbers as displayed).
+ * first sheet using underlying cell values (not display formatting), so a
+ * currency-formatted 1800 arrives as "1800" and dates as YYYY-MM-DD.
  */
 export async function parseSpreadsheetFile(file: File): Promise<ParsedSpreadsheet> {
   if (file.name.toLowerCase().endsWith('.csv')) {
@@ -48,29 +48,46 @@ function parseCsv(file: File): Promise<ParsedSpreadsheet> {
   })
 }
 
-export function parseExcel(data: ArrayBuffer | Uint8Array): ParsedSpreadsheet {
-  const workbook = XLSX.read(data, { type: 'array' })
+/** Underlying cell value -> import string. */
+export function formatCell(value: unknown): string {
+  if (value == null) return ''
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10)
+  }
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  return String(value)
+}
+
+export async function parseExcel(data: ArrayBuffer | Uint8Array): Promise<ParsedSpreadsheet> {
+  // SheetJS is large; load it only when an Excel file is actually parsed.
+  const XLSX = await import('xlsx')
+  let workbook: ReturnType<typeof XLSX.read>
+  try {
+    workbook = XLSX.read(data, { type: 'array', cellDates: true })
+  } catch (err) {
+    throw new Error(`Failed to parse Excel file: ${err instanceof Error ? err.message : String(err)}`)
+  }
   const sheetName = workbook.SheetNames[0]
   if (!sheetName) return { headers: [], rows: [] }
   const sheet = workbook.Sheets[sheetName]
 
-  // First row = headers (as displayed text), remaining rows = data.
-  const matrix = XLSX.utils.sheet_to_json<string[]>(sheet, {
+  // First row = headers, remaining rows = data, using raw cell values.
+  const matrix = XLSX.utils.sheet_to_json<unknown[]>(sheet, {
     header: 1,
-    raw: false,
+    raw: true,
     defval: '',
     blankrows: false,
   })
   if (matrix.length === 0) return { headers: [], rows: [] }
 
-  const headers = matrix[0].map((h) => String(h ?? '').trim())
+  const headers = matrix[0].map((h) => formatCell(h).trim())
   const rows: Record<string, string>[] = []
   for (const line of matrix.slice(1)) {
     const row: Record<string, string> = {}
     let hasValue = false
     headers.forEach((h, i) => {
       if (!h) return
-      const v = String(line[i] ?? '')
+      const v = formatCell(line[i])
       row[h] = v
       if (v !== '') hasValue = true
     })
