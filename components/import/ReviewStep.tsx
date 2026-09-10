@@ -16,8 +16,10 @@ import {
   PhotoIcon,
 } from '@heroicons/react/24/outline'
 import { Property } from '@/types/property'
+import { pickImportedData, type ImportedRow } from '@/lib/import-result-export'
 
 type DuplicateAction = 'skip' | 'update' | 'create'
+type MatchedBy = 'id' | 'address' | 'listing_link'
 
 interface RowState {
   data: Record<string, any>
@@ -25,6 +27,9 @@ interface RowState {
   serverStatus: 'ready' | 'duplicate' | 'error' | 'pending'
   serverErrors?: string[]
   match?: { id: string; title: string; street_address: string; city: string; state: string; zip_code: string; status: string }
+  matchedBy?: MatchedBy
+  /** Row's ID resolved to a property at a different address — needs explicit confirmation. */
+  addressMismatch?: boolean
   duplicateAction: DuplicateAction
   selected: boolean
   expanded: boolean
@@ -44,6 +49,7 @@ interface ReviewStepProps {
     photosUploaded?: number
     photoErrors?: number
     photoIssues?: string[]
+    importedRows?: ImportedRow[]
   }) => void
 }
 
@@ -59,6 +65,7 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
   const [importProgress, setImportProgress] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [noIdsMatched, setNoIdsMatched] = useState(false)
 
   // Transform all rows and run client-side validation, then server-side duplicate check
   useEffect(() => {
@@ -84,7 +91,18 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
     }
 
     bulkValidate(validRows as Partial<Property>[])
-      .then((response: { results: { index: number; status: string; errors?: string[]; match?: any }[] }) => {
+      .then((response: {
+        results: {
+          index: number
+          status: string
+          errors?: string[]
+          match?: any
+          matchedBy?: MatchedBy
+          addressMismatch?: boolean
+        }[]
+        noIdsMatched?: boolean
+      }) => {
+        setNoIdsMatched(response.noIdsMatched === true)
         setRowStates((prev) => {
           const next = [...prev]
           let validIndex = 0
@@ -93,15 +111,21 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
             const serverResult = response.results[validIndex]
             if (serverResult) {
               const isDuplicate = serverResult.status === 'duplicate'
+              const mismatch = isDuplicate && serverResult.addressMismatch === true
               next[i] = {
                 ...next[i],
                 serverStatus: serverResult.status as any,
                 serverErrors: serverResult.errors,
                 match: serverResult.match,
+                matchedBy: serverResult.matchedBy,
+                addressMismatch: mismatch,
                 // Existing properties default to Update (refresh data/photos in place);
-                // status & featured are preserved server-side.
-                duplicateAction: isDuplicate ? 'update' : next[i].duplicateAction,
-                selected: serverResult.status === 'ready' || isDuplicate,
+                // status & featured are preserved server-side. An ID that points at a
+                // property with a DIFFERENT address defaults to Skip — the user must
+                // confirm it row by row, since a pasted ID from the wrong line would
+                // otherwise overwrite an unrelated listing.
+                duplicateAction: isDuplicate ? (mismatch ? 'skip' : 'update') : next[i].duplicateAction,
+                selected: serverResult.status === 'ready' || (isDuplicate && !mismatch),
               }
             }
             validIndex++
@@ -110,9 +134,16 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
         })
       })
       .catch((err: Error) => {
-        setError(`Failed to check for duplicates: ${err.message}`)
+        setError(`Failed to check for duplicates: ${err.message}. Go back and try again.`)
+        // Do NOT promote unchecked rows to Ready: with no duplicate check every
+        // row (including ones carrying an existing property's ID) would import
+        // as a brand-new property. Leave them unimportable instead.
         setRowStates((prev) =>
-          prev.map((r) => r.serverStatus === 'pending' ? { ...r, serverStatus: 'ready' } : r)
+          prev.map((r) =>
+            r.serverStatus === 'pending'
+              ? { ...r, serverStatus: 'error', serverErrors: ['Duplicate check failed — go back and retry'], selected: false }
+              : r
+          )
         )
       })
       .finally(() => setIsValidating(false))
@@ -123,8 +154,10 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
     const duplicates = rowStates.filter((r) => r.serverStatus === 'duplicate').length
     const errors = rowStates.filter((r) => r.serverStatus === 'error').length
     const selectedDuplicates = rowStates.filter((r) => r.serverStatus === 'duplicate' && r.selected).length
+    const idConflicts = rowStates.filter((r) => r.serverStatus === 'duplicate' && r.addressMismatch).length
+    const unconfirmedConflicts = rowStates.filter((r) => r.serverStatus === 'duplicate' && r.addressMismatch && !r.selected).length
     const total = ready + selectedDuplicates
-    return { ready, duplicates, errors, selectedDuplicates, total }
+    return { ready, duplicates, errors, selectedDuplicates, idConflicts, unconfirmedConflicts, total }
   }, [rowStates])
 
   const photoFolderMapped = useMemo(() => Object.values(mapping).includes('photo_folder'), [mapping])
@@ -147,9 +180,17 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
   const toggleRow = useCallback((index: number) => {
     setRowStates((prev) => {
       const next = [...prev]
-      if (next[index].serverStatus !== 'error') {
-        next[index] = { ...next[index], selected: !next[index].selected }
-      }
+      const row = next[index]
+      if (row.serverStatus === 'error') return prev
+      // A skipped ID conflict can't be selected via the checkbox; the user must
+      // expand the row and choose an action explicitly.
+      if (row.addressMismatch && row.duplicateAction === 'skip') return prev
+      const selected = !row.selected
+      // Re-selecting a skipped duplicate means "update it" — never "create a
+      // second copy", which is what a selected row with action 'skip' would do.
+      const duplicateAction =
+        row.serverStatus === 'duplicate' && selected && row.duplicateAction === 'skip' ? 'update' : row.duplicateAction
+      next[index] = { ...row, selected, duplicateAction }
       return next
     })
   }, [])
@@ -176,11 +217,12 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
 
   const setAllDuplicateAction = useCallback((action: DuplicateAction) => {
     setRowStates((prev) =>
-      prev.map((r) =>
-        r.serverStatus === 'duplicate'
-          ? { ...r, duplicateAction: action, selected: action !== 'skip' }
-          : r
-      )
+      prev.map((r) => {
+        if (r.serverStatus !== 'duplicate') return r
+        // ID/address conflicts are never bulk-confirmed; each one must be chosen explicitly.
+        if (r.addressMismatch && action !== 'skip') return r
+        return { ...r, duplicateAction: action, selected: action !== 'skip' }
+      })
     )
   }, [])
 
@@ -192,8 +234,8 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
       // Work on copies so re-hosted photo URLs and stripped transient fields don't
       // mutate the on-screen rowStates (which would skew the preview on a retry).
       const selected = rowStates
+        .map((r, originalIndex) => ({ ...r, originalIndex, data: { ...r.data } }))
         .filter((r) => r.selected && r.serverStatus !== 'error')
-        .map((r) => ({ ...r, data: { ...r.data } }))
 
       if (selected.length === 0) {
         setError('No rows selected for import.')
@@ -246,6 +288,8 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
       for (const r of selected) {
         for (const field of TRANSIENT_FIELDS) delete r.data[field]
       }
+      // Fields the user mapped from their file — the only ones the results file should echo.
+      const mappedFields = Object.values(mapping).filter((f) => !TRANSIENT_FIELDS.has(f))
 
       // --- Phase B: build import rows and batch-create (existing flow) ---
       const importRows = selected.map((r) => {
@@ -260,21 +304,35 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
       })
 
       const aggregatedSummary = { created: 0, updated: 0, skipped: 0, errors: [] as { index: number; message: string }[] }
+      const importedRows: ImportedRow[] = []
       const totalBatches = Math.ceil(importRows.length / BATCH_SIZE)
 
       for (let i = 0; i < totalBatches; i++) {
-        const batch = importRows.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
+        const offset = i * BATCH_SIZE
+        const batch = importRows.slice(offset, offset + BATCH_SIZE)
         setImportProgress(`Importing batch ${i + 1} of ${totalBatches}...`)
 
         const result = await bulkCreate(batch)
         aggregatedSummary.created += result.created
         aggregatedSummary.updated += result.updated
         aggregatedSummary.skipped += result.skipped
-        aggregatedSummary.errors.push(...(result.errors || []))
+        // Error indices are batch-local positions in `selected`; map them back to
+        // the file's row number so "Row N" in the summary is the line to fix.
+        aggregatedSummary.errors.push(
+          ...(result.errors || []).map((e: { index: number; message: string }) => ({
+            ...e,
+            index: selected[offset + e.index]?.originalIndex ?? offset + e.index,
+          }))
+        )
+        // Database-assigned IDs, so the user can reconcile their master sheet.
+        for (const r of (result.results || []) as { index: number; id: string; action: 'created' | 'updated' }[]) {
+          const source = selected[offset + r.index]
+          if (source) importedRows.push({ id: r.id, action: r.action, data: pickImportedData(source.data, mappedFields) })
+        }
       }
 
       aggregatedSummary.skipped += rowStates.filter((r) => !r.selected || r.serverStatus === 'error').length
-      onImportComplete({ ...aggregatedSummary, photosUploaded, photoErrors, photoIssues })
+      onImportComplete({ ...aggregatedSummary, photosUploaded, photoErrors, photoIssues, importedRows })
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -399,6 +457,45 @@ export function ReviewStep({ headers, rows, mapping, photoArchive, onBack, onImp
         </div>
       )}
 
+      {/* Every ID in the file failed to resolve — almost certainly a mis-mapped column */}
+      {noIdsMatched && (
+        <div className="rounded-lg border bg-red-50 border-red-200 p-4">
+          <div className="flex items-start gap-3">
+            <XCircleIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-red-600" />
+            <div className="text-sm text-red-900 space-y-1">
+              <p className="font-medium">None of the Property IDs in this file match a property on the site.</p>
+              <p className="text-red-800">
+                If this file didn&apos;t come from the site&apos;s Export (for example an old Wix export), its ID column
+                holds different identifiers. Go back to Map Columns and set that column to <span className="font-medium">Skip</span>;
+                rows will then match by address instead.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ID / address conflicts need explicit confirmation */}
+      {stats.idConflicts > 0 && (
+        <div className="rounded-lg border bg-orange-50 border-orange-200 p-4">
+          <div className="flex items-start gap-3">
+            <ExclamationTriangleIcon className="h-5 w-5 flex-shrink-0 mt-0.5 text-orange-600" />
+            <div className="text-sm text-orange-900 space-y-1">
+              <p>
+                <span className="font-semibold">{stats.idConflicts}</span> row{stats.idConflicts !== 1 ? 's have' : ' has'} a
+                Property ID that belongs to a property at a <span className="font-semibold">different address</span>.
+                {stats.unconfirmedConflicts > 0
+                  ? ` ${stats.unconfirmedConflicts} will be skipped unless you expand each one and choose Update Existing.`
+                  : ' All have been confirmed.'}
+              </p>
+              <p className="text-orange-800">
+                This usually means an ID was pasted from the wrong line. Check before updating, because the existing
+                property&apos;s data would be overwritten. &quot;Update All&quot; leaves these rows alone.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Batch duplicate actions */}
       {stats.duplicates > 0 && (
         <div className="flex items-center gap-2 text-sm">
@@ -494,7 +591,11 @@ function RowEntry({
 }) {
   const statusBadge = {
     ready: { icon: CheckCircleIcon, color: 'text-green-600 bg-green-50', label: 'Ready' },
-    duplicate: { icon: ExclamationTriangleIcon, color: 'text-yellow-600 bg-yellow-50', label: 'Duplicate' },
+    duplicate: row.addressMismatch
+      ? { icon: ExclamationTriangleIcon, color: 'text-orange-700 bg-orange-50', label: 'ID conflict' }
+      : row.matchedBy === 'id'
+        ? { icon: ExclamationTriangleIcon, color: 'text-yellow-600 bg-yellow-50', label: 'Existing (by ID)' }
+        : { icon: ExclamationTriangleIcon, color: 'text-yellow-600 bg-yellow-50', label: 'Duplicate' },
     error: { icon: XCircleIcon, color: 'text-red-600 bg-red-50', label: 'Error' },
     pending: { icon: CheckCircleIcon, color: 'text-gray-400 bg-gray-50', label: 'Checking...' },
   }[row.serverStatus]
@@ -509,7 +610,8 @@ function RowEntry({
             type="checkbox"
             checked={row.selected}
             onChange={() => onToggleSelect(index)}
-            disabled={row.serverStatus === 'error'}
+            disabled={row.serverStatus === 'error' || (row.addressMismatch && row.duplicateAction === 'skip')}
+            title={row.addressMismatch && row.duplicateAction === 'skip' ? 'Expand the row to confirm this ID conflict' : undefined}
             className="rounded border-gray-300 text-navy focus:ring-navy"
           />
         </td>
@@ -540,10 +642,26 @@ function RowEntry({
         </td>
       </tr>
       {row.expanded && row.serverStatus === 'duplicate' && row.match && (
-        <tr className="bg-yellow-50/50">
+        <tr className={row.addressMismatch ? 'bg-orange-50/50' : 'bg-yellow-50/50'}>
           <td colSpan={8} className="px-6 py-4">
             <div className="space-y-3">
-              <p className="text-sm font-medium text-yellow-800">Existing property found:</p>
+              {row.addressMismatch ? (
+                <div className="text-sm text-orange-900">
+                  <p className="font-medium">
+                    The Property ID in this row belongs to a property at a different address.
+                  </p>
+                  <p className="text-orange-800 mt-0.5">
+                    Choose <span className="font-medium">Update Existing</span> only if this row really is meant to
+                    change that property (for example, you are correcting its address). Otherwise leave it skipped
+                    and fix the ID in your sheet.
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-yellow-800">
+                  Existing property found
+                  {row.matchedBy === 'id' ? ' by Property ID' : row.matchedBy === 'listing_link' ? ' by listing link' : ''}:
+                </p>
+              )}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-xs text-gray-500 uppercase">File Data</p>
@@ -554,6 +672,7 @@ function RowEntry({
                   <p className="text-xs text-gray-500 uppercase">Existing Record</p>
                   <p>{row.match.street_address}, {row.match.city}, {row.match.state} {row.match.zip_code}</p>
                   <p className="text-gray-500">Status: {row.match.status}</p>
+                  <p className="text-gray-400 font-mono text-xs break-all">{row.match.id}</p>
                 </div>
               </div>
               <div className="flex gap-2">

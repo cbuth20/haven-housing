@@ -6,9 +6,12 @@ import { UploadStep } from '@/components/import/UploadStep'
 import { MappingStep } from '@/components/import/MappingStep'
 import { ReviewStep } from '@/components/import/ReviewStep'
 import { Button } from '@/components/common/Button'
-import { CheckCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import type { PhotoArchive } from '@/lib/zip-photos'
+import { buildImportResultCsv, buildImportResultXlsx, type ImportedRow } from '@/lib/import-result-export'
+import { XLSX_MIME_TYPE } from '@/lib/property-export'
+import { downloadTextFile, downloadBinaryFile, formatDateForFilename } from '@/lib/download'
 
 type Step = 'upload' | 'mapping' | 'review' | 'complete'
 
@@ -20,6 +23,7 @@ interface ImportSummary {
   photosUploaded?: number
   photoErrors?: number
   photoIssues?: string[]
+  importedRows?: ImportedRow[]
 }
 
 const STEPS: { key: Step; label: string }[] = [
@@ -36,6 +40,7 @@ export default function ImportPage() {
   const [mapping, setMapping] = useState<Record<string, string>>({})
   const [photoArchive, setPhotoArchive] = useState<PhotoArchive | null>(null)
   const [summary, setSummary] = useState<ImportSummary | null>(null)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
 
   const handleParsed = useCallback(
     (h: string[], r: Record<string, string>[], archive: PhotoArchive | null) => {
@@ -54,8 +59,27 @@ export default function ImportPage() {
 
   const handleImportComplete = useCallback((s: ImportSummary) => {
     setSummary(s)
+    setDownloadError(null)
     setStep('complete')
   }, [])
+
+  const handleDownloadResults = useCallback(async (format: 'xlsx' | 'csv') => {
+    const rows = summary?.importedRows
+    if (!rows || rows.length === 0) return
+    setDownloadError(null)
+    try {
+      const origin = window.location.origin
+      const filename = `haven-import-${formatDateForFilename()}.${format}`
+      if (format === 'xlsx') {
+        downloadBinaryFile(await buildImportResultXlsx(rows, origin), filename, XLSX_MIME_TYPE)
+      } else {
+        downloadTextFile(buildImportResultCsv(rows, origin), filename)
+      }
+    } catch (error) {
+      console.error('Error building import results file:', error)
+      setDownloadError(error instanceof Error ? error.message : 'Download failed')
+    }
+  }, [summary])
 
   const currentStepIndex = STEPS.findIndex((s) => s.key === step)
 
@@ -168,12 +192,36 @@ export default function ImportPage() {
               </div>
             )}
 
+            {summary.importedRows && summary.importedRows.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left max-w-md mx-auto space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Get the Property IDs for these rows</p>
+                  <p className="text-sm text-blue-800 mt-1">
+                    Download the {summary.importedRows.length} imported row{summary.importedRows.length !== 1 ? 's' : ''} with
+                    the ID the site assigned to each one. Paste the <span className="font-mono text-xs">id</span> column
+                    into your master sheet so future imports match by ID.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => handleDownloadResults('xlsx')}>
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-1.5" />
+                    Excel
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleDownloadResults('csv')}>
+                    <ArrowDownTrayIcon className="h-4 w-4 mr-1.5" />
+                    CSV
+                  </Button>
+                </div>
+                {downloadError && <p className="text-sm text-red-700">{downloadError}</p>}
+              </div>
+            )}
+
             {summary.errors.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-left max-w-md mx-auto">
                 <p className="text-sm font-medium text-red-800 mb-2">{summary.errors.length} row(s) failed:</p>
                 <ul className="list-disc list-inside text-sm text-red-700">
                   {summary.errors.slice(0, 10).map((e, i) => (
-                    <li key={i}>Row {e.index + 1}: {e.message}</li>
+                    <li key={i}>Row {e.index + 1} of your file: {e.message}</li>
                   ))}
                   {summary.errors.length > 10 && (
                     <li>...and {summary.errors.length - 10} more</li>
@@ -190,6 +238,7 @@ export default function ImportPage() {
                 setMapping({})
                 setPhotoArchive(null)
                 setSummary(null)
+                setDownloadError(null)
               }}>
                 Import More
               </Button>

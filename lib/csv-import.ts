@@ -30,6 +30,7 @@ export interface ValidationResult {
 // ---------------------------------------------------------------------------
 
 export const COLUMN_ALIASES: Record<string, string[]> = {
+  id: ['id', 'property id', 'property_id'],
   title: ['title', 'property name', 'name'],
   street_address: ['street address', 'address', 'property address', 'add'],
   city: ['city', 'city name'],
@@ -95,6 +96,7 @@ export function autoMapColumns(headers: string[]): Record<string, string> {
 
 /** Human-readable labels for property fields, for use in dropdown menus. */
 const FIELD_LABELS: Record<string, string> = {
+  id: 'Property ID (update existing)',
   title: 'Title',
   street_address: 'Street Address',
   city: 'City',
@@ -143,8 +145,13 @@ const NUMERIC_FIELDS = new Set(['beds', 'baths', 'monthly_rent', 'latitude', 'lo
  * Fields that are used only during import (e.g. as a join key) and must NOT be
  * persisted to the properties table. ReviewStep strips these before sending rows
  * to the server.
+ *
+ * - photo_folder: ZIP folder join key.
+ * - id: identifies the EXISTING property to update (server-side duplicate
+ *   check). The sheet never dictates a property's ID — new rows always get a
+ *   database-generated one — so it must not reach the insert/update payload.
  */
-export const TRANSIENT_FIELDS = new Set(['photo_folder'])
+export const TRANSIENT_FIELDS = new Set(['photo_folder', 'id'])
 
 /**
  * Attempt to parse a JSON array string.
@@ -208,6 +215,12 @@ export function normalizeValue(raw: string, field: string): any {
 
   // --- photo_folder: transient ZIP-matching key, keep as the plain folder name ---
   if (field === 'photo_folder') {
+    return trimmed
+  }
+
+  // --- id: transient match key for updating an existing property. Kept verbatim;
+  // the server validates the format and existence. ---
+  if (field === 'id') {
     return trimmed
   }
 

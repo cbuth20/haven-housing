@@ -337,6 +337,29 @@ describe('photo_folder', () => {
   })
 })
 
+describe('id (update existing property)', () => {
+  it('auto-maps id headers, including the export header', () => {
+    expect(autoMapColumns(['id'])['id']).toBe('id')
+    expect(autoMapColumns(['Property ID'])['Property ID']).toBe('id')
+    expect(autoMapColumns(['property_id'])['property_id']).toBe('id')
+    // deliberately NOT an alias: too generic, and other systems' exports use it
+    expect(autoMapColumns(['uuid'])['uuid']).toBeUndefined()
+  })
+
+  it('keeps the value verbatim (trimmed); format is validated server-side', () => {
+    expect(normalizeValue('  ABC-123  ', 'id')).toBe('ABC-123')
+    expect(normalizeValue('', 'id')).toBeNull()
+  })
+
+  it('is a transient field so the sheet can never dictate a stored ID', () => {
+    expect(TRANSIENT_FIELDS.has('id')).toBe(true)
+  })
+
+  it('is exposed in the mapping dropdown', () => {
+    expect(getPropertyFields().find((f) => f.value === 'id')?.label).toMatch(/Property ID/)
+  })
+})
+
 // ---------------------------------------------------------------------------
 // validateRow
 // ---------------------------------------------------------------------------

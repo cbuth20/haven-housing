@@ -14,11 +14,19 @@ interface BulkCreateRequest {
   rows: ImportRow[]
 }
 
+/** Per-row outcome so the client can hand the database-assigned IDs back to the user. */
+interface ImportRowResult {
+  index: number
+  id: string
+  action: 'created' | 'updated'
+}
+
 interface ImportSummary {
   created: number
   updated: number
   skipped: number
   errors: { index: number; message: string }[]
+  results: ImportRowResult[]
 }
 
 const handler: Handler = requireAdmin(async (event) => {
@@ -33,7 +41,7 @@ const handler: Handler = requireAdmin(async (event) => {
       return { statusCode: 400, body: JSON.stringify({ message: 'Rows array is required' }) }
     }
 
-    const summary: ImportSummary = { created: 0, updated: 0, skipped: 0, errors: [] }
+    const summary: ImportSummary = { created: 0, updated: 0, skipped: 0, errors: [], results: [] }
 
     const toCreate: { index: number; data: Record<string, any> }[] = []
     const toUpdate: { index: number; id: string; provided: Record<string, any>; data: Record<string, any> }[] = []
@@ -85,7 +93,7 @@ const handler: Handler = requireAdmin(async (event) => {
       if (error) {
         // Fallback: insert one at a time to identify which rows failed
         for (const item of toCreate) {
-          const { error: singleError } = await supabaseAdmin
+          const { data: single, error: singleError } = await supabaseAdmin
             .from('properties')
             .insert({
               ...item.data,
@@ -93,15 +101,26 @@ const handler: Handler = requireAdmin(async (event) => {
               created_by: event.userId,
               owner_id: event.userId,
             })
+            .select('id')
+            .single()
 
           if (singleError) {
             summary.errors.push({ index: item.index, message: singleError.message })
           } else {
             summary.created++
+            if (single?.id) summary.results.push({ index: item.index, id: single.id, action: 'created' })
           }
         }
       } else {
         summary.created = toCreate.length
+        // A single multi-row INSERT ... RETURNING yields rows in VALUES order, so
+        // position i corresponds to toCreate[i]. Only report IDs when the count
+        // lines up; a short/long result would mis-assign IDs.
+        if (Array.isArray(data) && data.length === toCreate.length) {
+          data.forEach((row, i) => {
+            if (row?.id) summary.results.push({ index: toCreate[i].index, id: row.id, action: 'created' })
+          })
+        }
       }
     }
 
@@ -114,15 +133,21 @@ const handler: Handler = requireAdmin(async (event) => {
       // Nothing updatable (only protected or blank fields supplied) — no-op.
       if (Object.keys(updateData).length === 0) continue
 
-      const { error } = await supabaseAdmin
+      // .select() so a stale ID (property deleted since the review step) is
+      // detected: PostgREST returns no error for an UPDATE that hits 0 rows.
+      const { data: updatedRows, error } = await supabaseAdmin
         .from('properties')
         .update(updateData)
         .eq('id', item.id)
+        .select('id')
 
       if (error) {
         summary.errors.push({ index: item.index, message: error.message })
+      } else if (!updatedRows || updatedRows.length === 0) {
+        summary.errors.push({ index: item.index, message: `Property ${item.id} no longer exists — it may have been deleted since the review step` })
       } else {
         summary.updated++
+        summary.results.push({ index: item.index, id: item.id, action: 'updated' })
       }
     }
 
