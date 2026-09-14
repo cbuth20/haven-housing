@@ -58,11 +58,6 @@ export function Footer() {
                   className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
                 />
                 <img
-                  src="/images/memberships/werc-logo.svg"
-                  alt="WERC"
-                  className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"
-                />
-                <img
                   src="/images/memberships/iata-logo.webp"
                   alt="IATA"
                   className="h-10 object-contain brightness-0 invert opacity-80 hover:opacity-100 transition-opacity"

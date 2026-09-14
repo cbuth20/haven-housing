@@ -22,13 +22,6 @@ const teamMembers = [
     gradient: 'from-navy-700 to-navy',
   },
   {
-    name: 'Juliet Howie',
-    title: 'VP of Sales, Corporate Housing',
-    bio: 'Juliet brings a wealth of experience in the industry and a true passion for building meaningful partnerships. As a respected committee chair for GBTA EMEA, her insight, expertise, and vision play a key role in shaping the future of Haven\'s corporate housing initiative. Her deep understanding of the corporate travel and housing landscape, combined with her heart for service, perfectly aligns with our mission.',
-    photo: '/images/team/juliet-howie.png',
-    gradient: 'from-orange to-orange-600',
-  },
-  {
     name: 'Deserie Foley',
     title: 'Insurance Housing Specialist',
     bio: 'Deserie is an experienced professional in the insurance housing industry with over 10 years of dedicated service. One of her most significant achievements is running retreats focused on healing and spiritual growth, helping others on their journeys. Originally from Southern California, Deserie now resides in Florida, where she continues to pursue her passions and make a positive impact in her community.',
@@ -292,9 +285,9 @@ export default function AboutPage() {
           </div>
 
           {/* Other Team Members */}
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="flex flex-wrap justify-center gap-8 max-w-5xl mx-auto">
             {teamMembers.slice(2).map((member) => (
-              <div key={member.name} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+              <div key={member.name} className="w-full md:w-[calc((100%-4rem)/3)] bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
                 <div className="aspect-square bg-gray-100 overflow-hidden">
                   <img
                     src={member.photo}
